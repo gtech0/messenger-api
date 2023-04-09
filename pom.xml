@@ -29,6 +29,7 @@
 		<postgres.version>42.3.8</postgres.version>
 		<lombok.version>1.18.26</lombok.version>
 		<flyway.version>9.16.1</flyway.version>
+		<jjwt.version>0.11.5</jjwt.version>
 	</properties>
 
 	<dependencyManagement>
@@ -71,7 +72,26 @@
 				<artifactId>flyway-core</artifactId>
 				<version>${flyway.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-security</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.jsonwebtoken</groupId>
+				<artifactId>jjwt-api</artifactId>
+				<version>${jjwt.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.jsonwebtoken</groupId>
+				<artifactId>jjwt-impl</artifactId>
+				<version>${jjwt.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.jsonwebtoken</groupId>
+				<artifactId>jjwt-jackson</artifactId>
+				<version>${jjwt.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
     <dependencies>

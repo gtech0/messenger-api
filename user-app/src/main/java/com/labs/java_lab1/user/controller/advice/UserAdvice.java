@@ -1,6 +1,9 @@
 package com.labs.java_lab1.user.controller.advice;
 
+import com.labs.java_lab1.user.exception.DateParseException;
 import com.labs.java_lab1.user.exception.UserNotFoundException;
+import com.labs.java_lab1.user.response.ErrorResponse;
+import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +21,12 @@ import java.util.Date;
 public class UserAdvice extends ResponseEntityExceptionHandler {
 
     @Override
+    @NonNull
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers,
-                                                                  HttpStatus status,
-                                                                  WebRequest request) {
+                                                                  @NonNull HttpHeaders headers,
+                                                                  @NonNull HttpStatus status,
+                                                                  @NonNull WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(), "Validation error. Check 'errors' field for details.");
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errorResponse.addValidationError(new Date(), fieldError.getField(), fieldError.getDefaultMessage());
@@ -42,6 +46,13 @@ public class UserAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleUniqueConstraintViolationException(Exception ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    @ExceptionHandler(DateParseException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<Object> handleDateParseException(DateParseException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
 }

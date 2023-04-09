@@ -2,7 +2,6 @@ package com.labs.java_lab1.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -11,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Data
-public class CreateUpdateUserDto {
+public class CreateUserDto {
 
     @NotBlank(message = "Login is required")
     private String login;
