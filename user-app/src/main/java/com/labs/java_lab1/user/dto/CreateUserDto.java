@@ -15,13 +15,14 @@ public class CreateUserDto {
     @NotBlank(message = "Login is required")
     private String login;
 
-    @Email(message = "Email is incorrect", regexp = "[A-Za-z0-9]+@[A-Za-z0-9]+\\.[A-Za-z0-9]+")
+    @Email(message = "Email is incorrect", regexp = "[A-Za-z0-9]+@[A-Za-z0-9]+\\.[A-Za-z]+")
     @NotBlank(message = "Email is required")
     private String email;
 
     @NotBlank(message = "Password is required")
     private String password;
 
+    @NotBlank(message = "Name is required")
     private String fullName;
 
     @Temporal(TemporalType.DATE)

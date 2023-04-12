@@ -30,6 +30,8 @@
 		<lombok.version>1.18.26</lombok.version>
 		<flyway.version>9.16.1</flyway.version>
 		<jjwt.version>0.11.5</jjwt.version>
+		<spring-gateway.version>3.1.6</spring-gateway.version>
+		<spring-cloud.version>2021.0.6</spring-cloud.version>
 	</properties>
 
 	<dependencyManagement>
@@ -92,14 +94,25 @@
 				<artifactId>jjwt-jackson</artifactId>
 				<version>${jjwt.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-gateway</artifactId>
+				<version>${spring-gateway.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-configuration-processor</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>com.sun.jini</groupId>
-            <artifactId>sun-util</artifactId>
-            <version>2.1</version>
-        </dependency>
-    </dependencies>
-
 </project>

@@ -2,7 +2,7 @@ package com.labs.java_lab1.user.controller;
 
 
 import com.labs.java_lab1.user.dto.*;
-import com.labs.java_lab1.user.response.AuthenticationResponse;
+import com.labs.java_lab1.common.response.AuthenticationResponse;
 import com.labs.java_lab1.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 

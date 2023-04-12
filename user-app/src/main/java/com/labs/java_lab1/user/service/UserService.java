@@ -1,24 +1,21 @@
 package com.labs.java_lab1.user.service;
 
 import com.labs.java_lab1.user.dto.*;
-import com.labs.java_lab1.user.entity.Role;
 import com.labs.java_lab1.user.entity.UserEntity;
 import com.labs.java_lab1.user.exception.DateParseException;
-import com.labs.java_lab1.user.exception.UniqueConstraintViolationException;
-import com.labs.java_lab1.user.exception.UserNotFoundException;
+import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
+import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.user.repository.UserRepository;
-import com.labs.java_lab1.user.response.AuthenticationResponse;
+import com.labs.java_lab1.common.security.JwtUserData;
+import com.labs.java_lab1.common.response.AuthenticationResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +28,8 @@ import java.util.*;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+    private final AuthenticationService authenticationService;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public AuthenticationResponse save(CreateUserDto dto) {
@@ -56,35 +52,33 @@ public class UserService {
                 dto.getPhoneNumber(),
                 dto.getCity(),
                 dto.getAvatar(),
-                new Date(),
-                Role.USER
+                new Date()
         );
 
         UserEntity createdEntity = userRepository.save(entity);
-        String token = jwtService.generateToken(createdEntity);
-        return AuthenticationResponse
-                .builder()
-                .token(token)
-                .build();
+        AuthDto authDto = new AuthDto(
+                createdEntity.getLogin(),
+                createdEntity.getPassword()
+        );
+        String token = authenticationService.generateToken(authDto);
+        return new AuthenticationResponse(token);
     }
 
     @Transactional
     public AuthenticationResponse authenticate(AuthDto dto) {
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        dto.getLogin(),
-                        dto.getPassword()
-                )
-        );
+//        authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(
+//                        dto.getLogin(),
+//                        dto.getPassword()
+//                )
+//        );
 
         var entity = userRepository.findByLogin(dto.getLogin())
-                .orElseThrow();
-        String token = jwtService.generateToken(entity);
-        return AuthenticationResponse
-                .builder()
-                .token(token)
-                .build();
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        String token = authenticationService.generateToken(dto);
+        return new AuthenticationResponse(token);
     }
 
     @Transactional
@@ -119,9 +113,10 @@ public class UserService {
     @Transactional
     public UserDto getSelfProfile() {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = ((JwtUserData)authentication).getLogin();
 
-        return getByLogin(authentication.getName());
+        return getByLogin(username);
     }
 
     @Transactional
@@ -182,6 +177,10 @@ public class UserService {
                     fullSort = fullSort.and(sort);
                 }
             }
+        }
+
+        if (sort == null) {
+            sort = Sort.by("fullName").ascending();
         }
 
         Page<UserEntity> entities = userRepository.findAll(Example.of(example),

@@ -1,0 +1,13 @@
+app:
+  security: # этот набор свойств парсит SecurityProps
+    jwt-token:
+      permit-all:
+        - /api/users/register # пример метода регистрации пользователя (нет в проекте)
+        - /api/users/login
+        - /api/users/list
+      root-path: /api
+      secret: 423F4528482B4D6251655468576D5A7134743777217A25432A46294A404E6352
+      expiration: 86400000 # время миллисекунд
+    integrations:
+      root-path: /integration
+      api-key: ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX

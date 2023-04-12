@@ -14,8 +14,7 @@ create table public.users
             unique,
     password          varchar(255),
     phone_number      varchar(255),
-    registration_date date,
-    role              integer
+    registration_date date
 );
 
 alter table public.users

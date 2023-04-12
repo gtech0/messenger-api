@@ -1,4 +1,4 @@
-package com.labs.java_lab1.user.response;
+package com.labs.java_lab1.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
