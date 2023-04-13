@@ -47,4 +47,5 @@ public class UserController {
     public ResponseEntity<List<UserDto>> getUsers(@RequestBody PaginationDto dto){
         return ResponseEntity.ok(userService.getFiltered(dto));
     }
+
 }

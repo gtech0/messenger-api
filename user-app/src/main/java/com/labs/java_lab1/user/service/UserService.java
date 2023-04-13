@@ -1,5 +1,6 @@
 package com.labs.java_lab1.user.service;
 
+import com.labs.java_lab1.user.dto.UserFriendDto;
 import com.labs.java_lab1.user.dto.*;
 import com.labs.java_lab1.user.entity.UserEntity;
 import com.labs.java_lab1.user.exception.DateParseException;
@@ -55,11 +56,12 @@ public class UserService {
                 new Date()
         );
 
-        UserEntity createdEntity = userRepository.save(entity);
         AuthDto authDto = new AuthDto(
-                createdEntity.getLogin(),
-                createdEntity.getPassword()
+                entity.getLogin(),
+                entity.getPassword()
         );
+
+        userRepository.save(entity);
         String token = authenticationService.generateToken(authDto);
         return new AuthenticationResponse(token);
     }
@@ -67,15 +69,14 @@ public class UserService {
     @Transactional
     public AuthenticationResponse authenticate(AuthDto dto) {
 
-//        authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(
-//                        dto.getLogin(),
-//                        dto.getPassword()
-//                )
-//        );
+        Optional<UserEntity> user = userRepository.findByLogin(dto.getLogin());
 
-        var entity = userRepository.findByLogin(dto.getLogin())
+        userRepository.findByLogin(dto.getLogin())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(dto.getPassword(), user.get().getPassword())) {
+            throw new UserNotFoundException("Incorrect password");
+        }
 
         String token = authenticationService.generateToken(dto);
         return new AuthenticationResponse(token);
@@ -84,8 +85,8 @@ public class UserService {
     @Transactional
     public UserDto update(UpdateUserDto dto) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String login = authentication.getName();
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String login = ((JwtUserData)authentication).getLogin();
 
         if (userRepository.findByLogin(login).isEmpty()) {
             throw new UserNotFoundException("User " + login + " was not found");
@@ -119,7 +120,6 @@ public class UserService {
         return getByLogin(username);
     }
 
-    @Transactional
     public UserDto getByLogin(String login) {
 
         if (userRepository.findByLogin(login).isEmpty()) {
@@ -136,6 +136,26 @@ public class UserService {
                 entity.getPhoneNumber(),
                 entity.getCity(),
                 entity.getAvatar()
+        );
+    }
+
+    public boolean checkByIdAndName(UserFriendDto dto) {
+
+        return userRepository.getByUuidAndFullName(dto.getFriendId(), dto.getFriendName()).isPresent();
+    }
+
+    public boolean checkById(UserFriendDto dto) {
+
+        return userRepository.getByUuid(dto.getFriendId()).isPresent();
+    }
+
+    public UserFriendDto getById(UserFriendDto dto) {
+
+        UserEntity entity = userRepository.getByUuid(dto.getFriendId()).get();
+
+        return new UserFriendDto(
+                entity.getUuid(),
+                entity.getFullName()
         );
     }
 
@@ -157,6 +177,7 @@ public class UserService {
 
         UserEntity example = UserEntity
                 .builder()
+                .login(filters.get("login"))
                 .fullName(filters.get("fullName"))
                 .birthDate(date)
                 .phoneNumber(filters.get("phoneNumber"))

@@ -1,12 +1,12 @@
 package com.labs.java_lab1.friends.controller;
 
 import com.labs.java_lab1.friends.dto.AddFriendsDto;
+import com.labs.java_lab1.friends.dto.DeleteFriendDto;
+import com.labs.java_lab1.friends.dto.FriendDto;
 import com.labs.java_lab1.friends.service.FriendsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -17,9 +17,24 @@ public class FriendsController {
 
     private final FriendsService friendsService;
 
-    @PostMapping
+    @PostMapping("/add")
     public AddFriendsDto addFriend(@Valid @RequestBody AddFriendsDto dto) {
         return friendsService.save(dto);
+    }
+
+    @GetMapping("/{id}")
+    public FriendDto getFriend(@PathVariable String id) {
+        return friendsService.getFriend(id);
+    }
+
+    @PatchMapping("/sync/{id}")
+    public AddFriendsDto syncFriend(@PathVariable String id) {
+        return friendsService.syncFriend(id);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<DeleteFriendDto> deleteFriend(@PathVariable String id) {
+        return friendsService.deleteFriend(id);
     }
 
 }

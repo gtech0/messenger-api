@@ -13,6 +13,8 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, String> {
     Optional<UserEntity> findByLogin(String login);
+    Optional<UserEntity> getByUuidAndFullName(String id, String name);
+    Optional<UserEntity> getByUuid(String id);
     boolean existsByEmail(String email);
 
     Page<UserEntity> findAll(Example example, Pageable pageable);

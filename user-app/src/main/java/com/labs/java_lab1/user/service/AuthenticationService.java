@@ -39,14 +39,6 @@ public class AuthenticationService {
      */
     public String generateToken(AuthDto authDto) {
         var user = userRepository.findByLogin(authDto.getLogin());
-
-        if (user.isEmpty()) {
-            throw new UserNotFoundException("No user");
-        }
-
-        if (!bCryptPasswordEncoder.matches(authDto.getPassword(), user.get().getPassword())) {
-            throw new UserNotFoundException("Incorrect password");
-        }
         var key = Keys.hmacShaKeyFor(securityProps.getJwtToken().getSecret().getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
                 .setSubject(user.get().getFullName())
