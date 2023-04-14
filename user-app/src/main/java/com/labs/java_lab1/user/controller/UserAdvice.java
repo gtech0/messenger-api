@@ -1,6 +1,6 @@
 package com.labs.java_lab1.user.controller;
 
-import com.labs.java_lab1.user.exception.DateParseException;
+import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.ErrorResponse;
 import lombok.NonNull;

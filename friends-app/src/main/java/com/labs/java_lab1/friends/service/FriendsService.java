@@ -1,15 +1,17 @@
 package com.labs.java_lab1.friends.service;
 
+import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.security.JwtUserData;
-import com.labs.java_lab1.friends.dto.AddFriendsDto;
-import com.labs.java_lab1.friends.dto.DeleteFriendDto;
-import com.labs.java_lab1.friends.dto.FriendDto;
+import com.labs.java_lab1.friends.dto.*;
 import com.labs.java_lab1.friends.entity.FriendsEntity;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
 import com.labs.java_lab1.friends.repository.FriendsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,6 +23,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -28,6 +32,29 @@ import java.util.*;
 public class FriendsService {
 
     private final FriendsRepository friendsRepository;
+
+    public List<GetFriendsDto> getFriends(PagiantionDto dto) {
+
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((JwtUserData)authentication).getId().toString();
+
+        Page<FriendsEntity> entities =
+                friendsRepository.findAllByUserIdAndFriendNameContaining
+                        (userId, dto.getFriendName(), PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
+
+        List<GetFriendsDto> dtos = new ArrayList<>();
+        for (FriendsEntity entity : entities) {
+            if (entity.getDeleteDate() == null) {
+                dtos.add(new GetFriendsDto(
+                        entity.getAddDate(),
+                        null,
+                        entity.getFriendId(),
+                        entity.getFriendName()
+                ));
+            }
+        }
+        return dtos;
+    }
 
     public AddFriendsDto save(AddFriendsDto dto) {
 
@@ -38,24 +65,33 @@ public class FriendsService {
             throw new UniqueConstraintViolationException("You can't add yourself");
         }
 
-        Optional<FriendsEntity> entity =
+        Optional<FriendsEntity> entityByUserFriend =
                 friendsRepository.getByUserIdAndFriendId(data.getId().toString(), dto.getFriendId());
 
-        if (entity.isPresent()) {
-            entity.get().setDeleteDate(null);
+        Optional<FriendsEntity> entityByFriendUser =
+                friendsRepository.getByUserIdAndFriendId(dto.getFriendId(), data.getId().toString());
+
+        if (entityByUserFriend.isPresent()) {
+            entityByUserFriend.get().setDeleteDate(null);
+            entityByFriendUser.get().setDeleteDate(null);
+
+            entityByUserFriend.get().setAddDate(new Date());
+            entityByFriendUser.get().setAddDate(new Date());
 
             AddFriendsDto friendDto = syncFriend(dto.getFriendId());
-            entity.get().setFriendName(friendDto.getFriendName());
+            entityByUserFriend.get().setFriendName(friendDto.getFriendName());
+            entityByFriendUser.get().setFriendName(data.getName());
 
-            friendsRepository.save(entity.get());
+            friendsRepository.save(entityByUserFriend.get());
+            friendsRepository.save(entityByFriendUser.get());
             return new AddFriendsDto(
-                    entity.get().getFriendId(),
-                    entity.get().getFriendName()
+                    entityByUserFriend.get().getFriendId(),
+                    entityByUserFriend.get().getFriendName()
             );
         }
 
-        HttpServletRequest requestHeaders = ((ServletRequestAttributes) RequestContextHolder
-                .getRequestAttributes())
+        HttpServletRequest requestHeaders = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder
+                .getRequestAttributes()))
                 .getRequest();
         String apikey = requestHeaders.getHeader("API_KEY");
         String token = requestHeaders.getHeader("Authorization");
@@ -135,8 +171,8 @@ public class FriendsService {
             throw new FriendNotFoundException("Friend not found");
         }
 
-        HttpServletRequest requestHeaders = ((ServletRequestAttributes) RequestContextHolder
-                .getRequestAttributes())
+        HttpServletRequest requestHeaders = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder
+                .getRequestAttributes()))
                 .getRequest();
         String apikey = requestHeaders.getHeader("API_KEY");
         String token = requestHeaders.getHeader("Authorization");
@@ -167,7 +203,7 @@ public class FriendsService {
         ResponseEntity<AddFriendsDto> response = restTemplate.postForEntity(url, request, AddFriendsDto.class);
 
         FriendsEntity entity = friendsRepository.getByUserIdAndFriendId(userId, friendId).get();
-        entity.setFriendId(response.getBody().getFriendId());
+        entity.setFriendId(Objects.requireNonNull(response.getBody()).getFriendId());
         entity.setFriendName(response.getBody().getFriendName());
         friendsRepository.save(entity);
         return new AddFriendsDto(
@@ -177,6 +213,7 @@ public class FriendsService {
     }
 
     public ResponseEntity<DeleteFriendDto> deleteFriend(String friendId) {
+
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
@@ -195,4 +232,48 @@ public class FriendsService {
         return ResponseEntity.ok(new DeleteFriendDto("Friend successfully deleted"));
     }
 
+    public List<GetFriendsDto> searchFriends(SearchDto dto) {
+
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((JwtUserData)authentication).getId().toString();
+
+        Map<String, String> filters = dto.getFilters();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+        Date date;
+        if (filters.get("addDate") == null) {
+            date = null;
+        } else {
+            try {
+                date = formatter.parse(filters.get("addDate"));
+            } catch (ParseException e) {
+                throw new DateParseException("Invalid date format");
+            }
+        }
+
+        FriendsEntity example = FriendsEntity
+                .builder()
+                .addDate(date)
+                .deleteDate(null)
+                .userId(userId)
+                .friendId(filters.get("friendId"))
+                .friendName(filters.get("friendName"))
+                .build();
+
+        Page<FriendsEntity> entities =
+                friendsRepository.findAll(Example.of(example),
+                        PageRequest.of(dto.getPageNo(), dto.getPageSize()));
+
+        List<GetFriendsDto> dtos = new ArrayList<>();
+        for (FriendsEntity entity : entities) {
+            if (entity.getDeleteDate() == null) {
+                dtos.add(new GetFriendsDto(
+                        entity.getAddDate(),
+                        null,
+                        entity.getFriendId(),
+                        entity.getFriendName()
+                ));
+            }
+        }
+        return dtos;
+    }
 }

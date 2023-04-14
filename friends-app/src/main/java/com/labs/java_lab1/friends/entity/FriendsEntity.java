@@ -1,6 +1,7 @@
 package com.labs.java_lab1.friends.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.Date;
 @Table(name = "friends",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "friend_id"}))
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FriendsEntity {
@@ -19,9 +21,11 @@ public class FriendsEntity {
     @Column(name = "id")
     private String uuid;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "add_date")
     private Date addDate;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "delete_date")
     private Date deleteDate;
 

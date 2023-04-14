@@ -19,9 +19,11 @@ public class BlacklistEntity {
     @Column(name = "id")
     private String uuid;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "add_date")
     private Date addDate;
 
+    @Temporal(TemporalType.DATE)
     @Column(name = "delete_date")
     private Date deleteDate;
 

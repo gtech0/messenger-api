@@ -1,20 +1,18 @@
 package com.labs.java_lab1.user.service;
 
-import com.labs.java_lab1.user.dto.UserFriendDto;
-import com.labs.java_lab1.user.dto.*;
-import com.labs.java_lab1.user.entity.UserEntity;
-import com.labs.java_lab1.user.exception.DateParseException;
 import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
-import com.labs.java_lab1.user.repository.UserRepository;
-import com.labs.java_lab1.common.security.JwtUserData;
 import com.labs.java_lab1.common.response.AuthenticationResponse;
+import com.labs.java_lab1.common.security.JwtUserData;
+import com.labs.java_lab1.user.dto.*;
+import com.labs.java_lab1.user.entity.UserEntity;
+import com.labs.java_lab1.common.exception.DateParseException;
+import com.labs.java_lab1.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -208,7 +206,7 @@ public class UserService {
                 PageRequest.of(dto.getPageNo() - 1, dto.getPageSize(), sort));
 
         List<UserDto> dtos = new ArrayList<>();
-        for(UserEntity entity : entities) {
+        for (UserEntity entity : entities) {
             dtos.add(new UserDto(
                     entity.getLogin(),
                     entity.getEmail(),

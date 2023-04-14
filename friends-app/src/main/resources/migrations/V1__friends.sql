@@ -2,8 +2,8 @@ create table public.friends
 (
     id          varchar(255) not null
         primary key,
-    add_date    timestamp,
-    delete_date timestamp,
+    add_date    date,
+    delete_date date,
     friend_id   varchar(255),
     friend_name varchar(255),
     user_id     varchar(255),
@@ -18,8 +18,8 @@ create table public.blacklist
 (
     id          varchar(255) not null
         primary key,
-    add_date    timestamp,
-    delete_date timestamp,
+    add_date    date,
+    delete_date date,
     friend_id   varchar(255),
     friend_name varchar(255),
     user_id     varchar(255),
