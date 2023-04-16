@@ -2,6 +2,7 @@ package com.labs.java_lab1.friends.controller;
 
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.ErrorResponse;
+import com.labs.java_lab1.friends.exception.FriendAlreadyExistsException;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
 import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
@@ -53,6 +54,13 @@ public class FriendsAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleFriendNotFoundException(FriendNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(FriendAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleFriendAlreadyExistsException(FriendAlreadyExistsException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
 }

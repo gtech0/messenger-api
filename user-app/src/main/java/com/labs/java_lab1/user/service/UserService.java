@@ -9,6 +9,7 @@ import com.labs.java_lab1.user.entity.UserEntity;
 import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +23,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -34,10 +36,12 @@ public class UserService {
     public AuthenticationResponse save(CreateUserDto dto) {
 
         if (userRepository.findByLogin(dto.getLogin()).isPresent()) {
+            log.error("User " + dto.getLogin() + " already exists");
             throw new UniqueConstraintViolationException("User " + dto.getLogin() + " already exists");
         }
 
         if (userRepository.existsByEmail(dto.getEmail())) {
+            log.error("Email " + dto.getEmail() + " is already used");
             throw new UniqueConstraintViolationException("Email " + dto.getEmail() + " is already used");
         }
 
@@ -60,7 +64,9 @@ public class UserService {
         );
 
         userRepository.save(entity);
+        log.info("User was added");
         String token = authenticationService.generateToken(authDto);
+        log.info("Generated token");
         return new AuthenticationResponse(token);
     }
 
@@ -73,10 +79,12 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.get().getPassword())) {
+            log.debug("Password " + user.get().getPassword() + " is incorrect");
             throw new UserNotFoundException("Incorrect password");
         }
 
         String token = authenticationService.generateToken(dto);
+        log.info("Generated token");
         return new AuthenticationResponse(token);
     }
 
@@ -87,6 +95,7 @@ public class UserService {
         String login = ((JwtUserData)authentication).getLogin();
 
         if (userRepository.findByLogin(login).isEmpty()) {
+            log.error("User " + login + " was not found");
             throw new UserNotFoundException("User " + login + " was not found");
         }
 
@@ -98,6 +107,7 @@ public class UserService {
         entity.setAvatar(dto.getAvatar());
 
         UserEntity createdEntity = userRepository.save(entity);
+        log.info("User was updated");
         return new UserDto(
                 createdEntity.getLogin(),
                 createdEntity.getEmail(),
@@ -121,6 +131,7 @@ public class UserService {
     public UserDto getByLogin(String login) {
 
         if (userRepository.findByLogin(login).isEmpty()) {
+            log.error("User " + login + " was not found");
             throw new UserNotFoundException("User " + login + " was not found");
         }
 
@@ -138,17 +149,17 @@ public class UserService {
     }
 
     public boolean checkByIdAndName(UserFriendDto dto) {
-
+        log.info("Checked by id and login");
         return userRepository.getByUuidAndFullName(dto.getFriendId(), dto.getFriendName()).isPresent();
     }
 
     public boolean checkById(UserFriendDto dto) {
-
+        log.info("Checked by id");
         return userRepository.getByUuid(dto.getFriendId()).isPresent();
     }
 
     public UserFriendDto getById(UserFriendDto dto) {
-
+        log.info("Got user by id");
         UserEntity entity = userRepository.getByUuid(dto.getFriendId()).get();
 
         return new UserFriendDto(
@@ -162,13 +173,12 @@ public class UserService {
 
         Map<String, String> filters = dto.getFilters();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        Date date;
-        if (filters.get("birthDate") == null) {
-            date = null;
-        } else {
+        Date date = null;
+        if (filters.get("birthDate") != null) {
             try {
                 date = formatter.parse(filters.get("birthDate"));
             } catch (ParseException e) {
+                log.error(date + " is invalid date");
                 throw new DateParseException("Invalid date format");
             }
         }
@@ -204,7 +214,7 @@ public class UserService {
 
         Page<UserEntity> entities = userRepository.findAll(Example.of(example),
                 PageRequest.of(dto.getPageNo() - 1, dto.getPageSize(), sort));
-
+        log.info("Found entities");
         List<UserDto> dtos = new ArrayList<>();
         for (UserEntity entity : entities) {
             dtos.add(new UserDto(

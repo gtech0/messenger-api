@@ -5,10 +5,10 @@ import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.security.JwtUserData;
 import com.labs.java_lab1.friends.dto.*;
-import com.labs.java_lab1.friends.entity.FriendsEntity;
+import com.labs.java_lab1.friends.entity.BlacklistEntity;
 import com.labs.java_lab1.friends.exception.FriendAlreadyExistsException;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
-import com.labs.java_lab1.friends.repository.FriendsRepository;
+import com.labs.java_lab1.friends.repository.BlacklistRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -32,32 +32,32 @@ import java.util.*;
 
 @Slf4j
 @Service
-public class FriendsService {
+public class BlacklistService {
 
-    private final FriendsRepository friendsRepository;
-    private final BlacklistService blacklistService;
+    private final BlacklistRepository blacklistRepository;
+    private final FriendsService friendsService;
 
-    public FriendsService(FriendsRepository friendsRepository, @Lazy BlacklistService blacklistService) {
-        this.friendsRepository = friendsRepository;
-        this.blacklistService = blacklistService;
+    public BlacklistService(BlacklistRepository blacklistRepository, @Lazy FriendsService friendsService) {
+        this.blacklistRepository = blacklistRepository;
+        this.friendsService = friendsService;
     }
 
     @Value("${app.security.integrations.api-key}")
     private String apiKey;
 
-    public List<GetFriendsDto> getFriends(PagiantionDto dto) {
+    public List<GetFriendsDto> getBlacklist(PagiantionDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
-        Page<FriendsEntity> entities =
-                friendsRepository.findAllByUserIdAndFriendNameContaining
+        Page<BlacklistEntity> entities =
+                blacklistRepository.findAllByUserIdAndFriendNameContaining
                         (userId, dto.getFriendName(), PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
 
         log.info("Found entities");
 
         List<GetFriendsDto> dtos = new ArrayList<>();
-        for (FriendsEntity entity : entities) {
+        for (BlacklistEntity entity : entities) {
             if (entity.getDeleteDate() == null) {
                 dtos.add(new GetFriendsDto(
                         entity.getAddDate(),
@@ -80,39 +80,39 @@ public class FriendsService {
             throw new UniqueConstraintViolationException("You can't add yourself");
         }
 
-        if (blacklistService.personExists(dto.getFriendId())) {
-            log.info("Person exists");
-            blacklistService.deletePerson(dto.getFriendId());
-            log.info("Person deleted");
+        if (friendsService.friendExists(dto.getFriendId())) {
+            log.info("Friend exists");
+            friendsService.deleteFriend(dto.getFriendId());
+            log.info("Friend deleted");
         }
 
-        Optional<FriendsEntity> entityByUserFriend =
-                friendsRepository.getByUserIdAndFriendId(data.getId().toString(), dto.getFriendId());
+        Optional<BlacklistEntity> entityByUserFriend =
+                blacklistRepository.getByUserIdAndFriendId(data.getId().toString(), dto.getFriendId());
 
-        Optional<FriendsEntity> entityByFriendUser =
-                friendsRepository.getByUserIdAndFriendId(dto.getFriendId(), data.getId().toString());
+        Optional<BlacklistEntity> entityByFriendUser =
+                blacklistRepository.getByUserIdAndFriendId(dto.getFriendId(), data.getId().toString());
 
         if (entityByUserFriend.isPresent() && entityByUserFriend.get().getDeleteDate() != null) {
-            log.info("Person was a friend before");
+            log.info("Person was deleted from blacklist before");
             entityByUserFriend.get().setDeleteDate(null);
             entityByFriendUser.get().setDeleteDate(null);
 
             entityByUserFriend.get().setAddDate(new Date());
             entityByFriendUser.get().setAddDate(new Date());
 
-            AddFriendsDto friendDto = syncFriend(dto.getFriendId());
+            AddFriendsDto friendDto = syncPerson(dto.getFriendId());
             entityByUserFriend.get().setFriendName(friendDto.getFriendName());
             entityByFriendUser.get().setFriendName(data.getName());
 
-            friendsRepository.save(entityByUserFriend.get());
-            friendsRepository.save(entityByFriendUser.get());
+            blacklistRepository.save(entityByUserFriend.get());
+            blacklistRepository.save(entityByFriendUser.get());
             return new AddFriendsDto(
                     entityByUserFriend.get().getFriendId(),
                     entityByUserFriend.get().getFriendName()
             );
         } else if (entityByUserFriend.isPresent()) {
-            log.error("Friend is already added");
-            throw new FriendAlreadyExistsException("Friend already added");
+            log.error("Person already blacklisted");
+            throw new FriendAlreadyExistsException("Person already blacklisted");
         }
 
         HttpServletRequest requestHeaders = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder
@@ -142,7 +142,7 @@ public class FriendsService {
             throw new UserNotFoundException("User not found");
         }
 
-        FriendsEntity entityFriend = new FriendsEntity(
+        BlacklistEntity entityFriend = new BlacklistEntity(
                 UUID.randomUUID().toString(),
                 new Date(),
                 null,
@@ -151,7 +151,7 @@ public class FriendsService {
                 dto.getFriendName()
         );
 
-        FriendsEntity entityUser = new FriendsEntity(
+        BlacklistEntity entityUser = new BlacklistEntity(
                 UUID.randomUUID().toString(),
                 new Date(),
                 null,
@@ -160,27 +160,27 @@ public class FriendsService {
                 data.getName()
         );
 
-        FriendsEntity createdFriend = friendsRepository.save(entityFriend);
-        friendsRepository.save(entityUser);
-        log.info("Friend was added");
+        BlacklistEntity createdFriend = blacklistRepository.save(entityFriend);
+        blacklistRepository.save(entityUser);
+        log.info("Person was blacklisted");
         return new AddFriendsDto(
                 createdFriend.getFriendId(),
                 createdFriend.getFriendName()
         );
     }
 
-    public FriendDto getFriend(String friendId) {
+    public FriendDto getPerson(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
-        Optional<FriendsEntity> entityOptional = friendsRepository.getByUserIdAndFriendId(userId, friendId);
+        Optional<BlacklistEntity> entityOptional = blacklistRepository.getByUserIdAndFriendId(userId, friendId);
         if (entityOptional.isEmpty() || entityOptional.get().getDeleteDate() != null) {
-            log.error("Friend not found");
-            throw new FriendNotFoundException("Friend not found");
+            log.error("Person not found");
+            throw new FriendNotFoundException("Person not found");
         }
 
-        FriendsEntity entity = entityOptional.get();
+        BlacklistEntity entity = entityOptional.get();
         return new FriendDto(
                 entity.getAddDate(),
                 null,
@@ -190,29 +190,29 @@ public class FriendsService {
         );
     }
 
-    public boolean friendExists(String friendId) {
+    public boolean personExists(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
-        Optional<FriendsEntity> entityOptional = friendsRepository.getByUserIdAndFriendId(userId, friendId);
+        Optional<BlacklistEntity> entityOptional = blacklistRepository.getByUserIdAndFriendId(userId, friendId);
         if (entityOptional.isPresent() && entityOptional.get().getDeleteDate() == null) {
-            log.info("Friend exists");
+            log.info("Person exists");
             return true;
         } else {
-            log.info("Friend doesn't exist");
+            log.info("Person doesn't exist");
             return false;
         }
     }
 
-    public AddFriendsDto syncFriend(String friendId) {
+    public AddFriendsDto syncPerson(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
-        if (friendsRepository.getByUserIdAndFriendId(userId, friendId).isEmpty()) {
-            log.error("Friend not found");
-            throw new FriendNotFoundException("Friend not found");
+        if (blacklistRepository.getByUserIdAndFriendId(userId, friendId).isEmpty()) {
+            log.error("Person not found");
+            throw new FriendNotFoundException("Person not found");
         }
 
         HttpServletRequest requestHeaders = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder
@@ -247,39 +247,39 @@ public class FriendsService {
         HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
         ResponseEntity<AddFriendsDto> response = restTemplate.postForEntity(url, request, AddFriendsDto.class);
 
-        FriendsEntity entity = friendsRepository.getByUserIdAndFriendId(userId, friendId).get();
+        BlacklistEntity entity = blacklistRepository.getByUserIdAndFriendId(userId, friendId).get();
         entity.setFriendId(Objects.requireNonNull(response.getBody()).getFriendId());
         entity.setFriendName(response.getBody().getFriendName());
-        friendsRepository.save(entity);
-        log.debug("Friend " + entity.getFriendName() + " was synced");
+        blacklistRepository.save(entity);
+        log.debug("Person " + entity.getFriendName() + " was synced");
         return new AddFriendsDto(
                 entity.getFriendId(),
                 entity.getFriendName()
         );
     }
 
-    public ResponseEntity<DeleteFriendDto> deleteFriend(String friendId) {
+    public ResponseEntity<DeleteFriendDto> deletePerson(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
-        Optional<FriendsEntity> entityFriend = friendsRepository.getByUserIdAndFriendId(userId, friendId);
+        Optional<BlacklistEntity> entityFriend = blacklistRepository.getByUserIdAndFriendId(userId, friendId);
         if (entityFriend.isEmpty() || entityFriend.get().getDeleteDate() != null) {
-            log.error("Friend not found");
-            throw new FriendNotFoundException("Friend not found");
+            log.error("Person not found");
+            throw new FriendNotFoundException("Person not found");
         }
-        Optional<FriendsEntity> entityUser = friendsRepository.getByUserIdAndFriendId(friendId, userId);
+        Optional<BlacklistEntity> entityUser = blacklistRepository.getByUserIdAndFriendId(friendId, userId);
 
         entityFriend.get().setDeleteDate(new Date());
         entityUser.get().setDeleteDate(new Date());
 
-        friendsRepository.save(entityFriend.get());
-        friendsRepository.save(entityUser.get());
-        log.info("Friend was deleted");
-        return ResponseEntity.ok(new DeleteFriendDto("Friend successfully deleted"));
+        blacklistRepository.save(entityFriend.get());
+        blacklistRepository.save(entityUser.get());
+        log.info("Person was deleted from blacklist");
+        return ResponseEntity.ok(new DeleteFriendDto("Person successfully deleted"));
     }
 
-    public List<GetFriendsDto> searchFriends(SearchDto dto) {
+    public List<GetFriendsDto> searchBlacklist(SearchDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
@@ -296,7 +296,7 @@ public class FriendsService {
             }
         }
 
-        FriendsEntity example = FriendsEntity
+        BlacklistEntity example = BlacklistEntity
                 .builder()
                 .addDate(date)
                 .deleteDate(null)
@@ -305,13 +305,12 @@ public class FriendsService {
                 .friendName(filters.get("friendName"))
                 .build();
 
-        Page<FriendsEntity> entities =
-                friendsRepository.findAll(Example.of(example),
+        Page<BlacklistEntity> entities =
+                blacklistRepository.findAll(Example.of(example),
                         PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
-
         log.info("Found entities");
         List<GetFriendsDto> dtos = new ArrayList<>();
-        for (FriendsEntity entity : entities) {
+        for (BlacklistEntity entity : entities) {
             if (entity.getDeleteDate() == null) {
                 dtos.add(new GetFriendsDto(
                         entity.getAddDate(),
