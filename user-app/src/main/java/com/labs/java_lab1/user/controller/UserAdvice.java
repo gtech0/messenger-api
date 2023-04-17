@@ -42,7 +42,7 @@ public class UserAdvice extends ResponseEntityExceptionHandler {
     }
 
     /**
-     * Обработка ошибок когда искомый объект не найден
+     * Обработка ошибок когда искомый пользователь не найден
      */
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)

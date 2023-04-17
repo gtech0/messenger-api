@@ -18,9 +18,16 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.Date;
 
+/**
+ * Класс для обработки исключений
+ */
 @RestControllerAdvice
 public class FriendsAdvice extends ResponseEntityExceptionHandler {
 
+    /**
+     * Обработка ошибок валидации
+     * @return тело ошибки
+     */
     @Override
     @NonNull
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -35,6 +42,9 @@ public class FriendsAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.unprocessableEntity().body(errorResponse);
     }
 
+    /**
+     * Обработка ошибок когда искомый пользователь не найден
+     */
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex) {
@@ -42,6 +52,9 @@ public class FriendsAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
+    /**
+     * Обработка ошибки уникального значения
+     */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> handleUniqueConstraintViolationException(Exception ex) {
@@ -49,6 +62,9 @@ public class FriendsAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
+    /**
+     * Обработка ошибок когда искомый друг не найден
+     */
     @ExceptionHandler(FriendNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<Object> handleFriendNotFoundException(FriendNotFoundException ex) {
@@ -56,6 +72,9 @@ public class FriendsAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
+    /**
+     * Обработка ошибок когда искомый друг уже создан
+     */
     @ExceptionHandler(FriendAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> handleFriendAlreadyExistsException(FriendAlreadyExistsException ex) {

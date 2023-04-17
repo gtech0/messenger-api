@@ -45,6 +45,11 @@ public class BlacklistService {
     @Value("${app.security.integrations.api-key}")
     private String apiKey;
 
+    /**
+     * Получение списка пользователей в блэклисте
+     * @param dto дто с фильтрацией и пагинацией
+     * @return список пользователей
+     */
     public List<GetFriendsDto> getBlacklist(PagiantionDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -70,6 +75,11 @@ public class BlacklistService {
         return dtos;
     }
 
+    /**
+     * Добавление пользователя в блэклист
+     * @param dto дто с данными о пользователе
+     * @return данные о добавленном пользователе
+     */
     public AddFriendsDto save(AddFriendsDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -169,6 +179,11 @@ public class BlacklistService {
         );
     }
 
+    /**
+     * Получить данные о конкретном пользователе из блэклиста
+     * @param friendId id этого пользователя
+     * @return дто с данными об этом пользователе
+     */
     public FriendDto getPerson(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -190,6 +205,11 @@ public class BlacklistService {
         );
     }
 
+    /**
+     * Проверка на существование пользователя в блэклисте
+     * @param friendId id проверяемого пользователя
+     * @return true - существует, false - нет
+     */
     public boolean personExists(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -205,6 +225,11 @@ public class BlacklistService {
         }
     }
 
+    /**
+     * Синхронизация данных о конкретном пользователе в блэклисте
+     * @param friendId id пользователя в блэклисте
+     * @return дто с актульными данными об этом пользователе
+     */
     public AddFriendsDto syncPerson(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -258,6 +283,11 @@ public class BlacklistService {
         );
     }
 
+    /**
+     * Удаление пользователя из блэклиста
+     * @param friendId id удаляемого пользователя
+     * @return дто удалённого пользователя
+     */
     public ResponseEntity<DeleteFriendDto> deletePerson(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -279,6 +309,11 @@ public class BlacklistService {
         return ResponseEntity.ok(new DeleteFriendDto("Person successfully deleted"));
     }
 
+    /**
+     * Поиск пользователей в блэклисте по заданным параметрам
+     * @param dto дто с пагинацией и фильтрами
+     * @return список пользователей в блэклисте
+     */
     public List<GetFriendsDto> searchBlacklist(SearchDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

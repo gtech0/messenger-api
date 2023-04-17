@@ -32,6 +32,12 @@ public class UserService {
     private final AuthenticationService authenticationService;
     private final BCryptPasswordEncoder passwordEncoder;
 
+
+    /**
+     * Регистрация пользователя
+     * @param dto данные пользователя
+     * @return jwt токен
+     */
     @Transactional
     public AuthenticationResponse save(CreateUserDto dto) {
 
@@ -70,6 +76,11 @@ public class UserService {
         return new AuthenticationResponse(token);
     }
 
+    /**
+     * Вход пользователя в систему
+     * @param dto дто с логином и паролем
+     * @return jwt токен
+     */
     @Transactional
     public AuthenticationResponse authenticate(AuthDto dto) {
 
@@ -88,6 +99,11 @@ public class UserService {
         return new AuthenticationResponse(token);
     }
 
+    /**
+     * Обновление данных профиля
+     * @param dto дто с новыми данными
+     * @return изменённые данные
+     */
     @Transactional
     public UserDto update(UpdateUserDto dto) {
 
@@ -119,6 +135,10 @@ public class UserService {
         );
     }
 
+    /**
+     * Показ данных своего профиля
+     * @return данные профиля
+     */
     @Transactional
     public UserDto getSelfProfile() {
 
@@ -128,6 +148,11 @@ public class UserService {
         return getByLogin(username);
     }
 
+    /**
+     * Получение информации о пользователе по логину
+     * @param login логин искомого пользователя
+     * @return данные о пользователе
+     */
     public UserDto getByLogin(String login) {
 
         if (userRepository.findByLogin(login).isEmpty()) {
@@ -148,16 +173,31 @@ public class UserService {
         );
     }
 
+    /**
+     * Проверка пользователя по id и имени
+     * @param dto дто с id и именем
+     * @return true - существует, false - нет
+     */
     public boolean checkByIdAndName(UserFriendDto dto) {
         log.info("Checked by id and login");
         return userRepository.getByUuidAndFullName(dto.getFriendId(), dto.getFriendName()).isPresent();
     }
 
+    /**
+     * Проверка пользователя по id
+     * @param dto дто с id
+     * @return true - существует, false - нет
+     */
     public boolean checkById(UserFriendDto dto) {
         log.info("Checked by id");
         return userRepository.getByUuid(dto.getFriendId()).isPresent();
     }
 
+    /**
+     * Получение пользователя по id
+     * @param dto дто с id
+     * @return данные о пользователе
+     */
     public UserFriendDto getById(UserFriendDto dto) {
         log.info("Got user by id");
         UserEntity entity = userRepository.getByUuid(dto.getFriendId()).get();
@@ -168,6 +208,11 @@ public class UserService {
         );
     }
 
+    /**
+     * Получение списка пользователей по заданным параметрам
+     * @param dto дто с фильртрами и пагинацией
+     * @return список пользователей
+     */
     @Transactional
     public List<UserDto> getFiltered(PaginationDto dto){
 
