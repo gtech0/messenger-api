@@ -22,6 +22,8 @@ app:
         - /api/users/register # пример метода регистрации пользователя (нет в проекте)
         - /api/users/login
         - /api/users/list
+        - /api/friends/blacklist/sync
+        - /api/friends/sync
       root-path: /api
       secret: 423F4528482B4D6251655468576D5A7134743777217A25432A46294A404E6352
       expiration: 86400000 # время миллисекунд

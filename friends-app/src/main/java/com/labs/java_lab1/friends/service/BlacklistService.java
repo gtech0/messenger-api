@@ -232,23 +232,13 @@ public class BlacklistService {
      */
     public AddFriendsDto syncPerson(String friendId) {
 
-        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userId = ((JwtUserData)authentication).getId().toString();
-
-        if (blacklistRepository.getByUserIdAndFriendId(userId, friendId).isEmpty()) {
+        if (blacklistRepository.getAllByFriendId(friendId).isEmpty()) {
             log.error("Person not found");
             throw new FriendNotFoundException("Person not found");
         }
 
-        HttpServletRequest requestHeaders = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder
-                .getRequestAttributes()))
-                .getRequest();
-
-        String token = requestHeaders.getHeader("Authorization");
-
         RestTemplate restTemplate = new RestTemplate();
         String urlCheck = "http://localhost:8010/integration/users/checkid";
-
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", friendId);
         map.put("friendName", "");
@@ -256,7 +246,6 @@ public class BlacklistService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("API_KEY", apiKey);
-        headers.set("Authorization", token.substring(7));
 
         HttpEntity<HashMap<String, String>> requestCheck = new HttpEntity<>(map, headers);
 
@@ -268,18 +257,20 @@ public class BlacklistService {
         }
 
         String url = "http://localhost:8010/integration/users/sync";
-
         HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
         ResponseEntity<AddFriendsDto> response = restTemplate.postForEntity(url, request, AddFriendsDto.class);
 
-        BlacklistEntity entity = blacklistRepository.getByUserIdAndFriendId(userId, friendId).get();
-        entity.setFriendId(Objects.requireNonNull(response.getBody()).getFriendId());
-        entity.setFriendName(response.getBody().getFriendName());
-        blacklistRepository.save(entity);
-        log.debug("Person " + entity.getFriendName() + " was synced");
+        List<BlacklistEntity> entities = blacklistRepository.getAllByFriendId(friendId);
+        for (BlacklistEntity entity : entities) {
+            entity.setFriendId(Objects.requireNonNull(response.getBody()).getFriendId());
+            entity.setFriendName(response.getBody().getFriendName());
+            blacklistRepository.save(entity);
+        }
+
+        log.debug("Person " + Objects.requireNonNull(response.getBody()).getFriendName() + " was synced");
         return new AddFriendsDto(
-                entity.getFriendId(),
-                entity.getFriendName()
+                friendId,
+                response.getBody().getFriendName()
         );
     }
 

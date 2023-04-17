@@ -8,11 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface FriendsRepository extends JpaRepository<FriendsEntity, String> {
     Optional<FriendsEntity> getByUserIdAndFriendId(String userId, String friendId);
+    List<FriendsEntity> getAllByFriendId(String friendId);
     Page<FriendsEntity> findAllByUserIdAndFriendNameContaining(String userId, String friendName, Pageable pageable);
     @NonNull Page<FriendsEntity> findAll(@NonNull Example example, @NonNull Pageable pageable);
 

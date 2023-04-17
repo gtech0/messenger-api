@@ -27,7 +27,7 @@ class IntegrationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        if (!Objects.equals(request.getHeader(SecurityConst.HEADER_API_KEY), apiKey) || request.getHeader(SecurityConst.HEADER_JWT) == null) {
+        if (!Objects.equals(request.getHeader(SecurityConst.HEADER_API_KEY), apiKey)) {
             // здесь должна быть проверка токена, но в примере мы просто проверяем наличие хидера
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return;

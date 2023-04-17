@@ -207,23 +207,13 @@ public class FriendsService {
 
     public AddFriendsDto syncFriend(String friendId) {
 
-        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userId = ((JwtUserData)authentication).getId().toString();
-
-        if (friendsRepository.getByUserIdAndFriendId(userId, friendId).isEmpty()) {
+        if (friendsRepository.getAllByFriendId(friendId).isEmpty()) {
             log.error("Friend not found");
             throw new FriendNotFoundException("Friend not found");
         }
 
-        HttpServletRequest requestHeaders = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder
-                .getRequestAttributes()))
-                .getRequest();
-
-        String token = requestHeaders.getHeader("Authorization");
-
         RestTemplate restTemplate = new RestTemplate();
         String urlCheck = "http://localhost:8010/integration/users/checkid";
-
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", friendId);
         map.put("friendName", "");
@@ -231,7 +221,6 @@ public class FriendsService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("API_KEY", apiKey);
-        headers.set("Authorization", token.substring(7));
 
         HttpEntity<HashMap<String, String>> requestCheck = new HttpEntity<>(map, headers);
 
@@ -243,18 +232,20 @@ public class FriendsService {
         }
 
         String url = "http://localhost:8010/integration/users/sync";
-
         HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
         ResponseEntity<AddFriendsDto> response = restTemplate.postForEntity(url, request, AddFriendsDto.class);
 
-        FriendsEntity entity = friendsRepository.getByUserIdAndFriendId(userId, friendId).get();
-        entity.setFriendId(Objects.requireNonNull(response.getBody()).getFriendId());
-        entity.setFriendName(response.getBody().getFriendName());
-        friendsRepository.save(entity);
-        log.debug("Friend " + entity.getFriendName() + " was synced");
+        List<FriendsEntity> entities = friendsRepository.getAllByFriendId(friendId);
+        for (FriendsEntity entity : entities) {
+            entity.setFriendId(Objects.requireNonNull(response.getBody()).getFriendId());
+            entity.setFriendName(response.getBody().getFriendName());
+            friendsRepository.save(entity);
+        }
+
+        log.debug("Friend " + Objects.requireNonNull(response.getBody()).getFriendName() + " was synced");
         return new AddFriendsDto(
-                entity.getFriendId(),
-                entity.getFriendName()
+                friendId,
+                response.getBody().getFriendName()
         );
     }
 
