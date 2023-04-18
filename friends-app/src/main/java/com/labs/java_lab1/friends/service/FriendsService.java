@@ -51,21 +51,20 @@ public class FriendsService {
         String userId = ((JwtUserData)authentication).getId().toString();
 
         Page<FriendsEntity> entities =
-                friendsRepository.findAllByUserIdAndFriendNameContaining
-                        (userId, dto.getFriendName(), PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
+                friendsRepository.findAllByUserIdAndDeleteDateAndFriendNameContaining
+                        (userId, null, dto.getFriendName(),
+                                PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
 
         log.info("Found entities");
 
         List<GetFriendsDto> dtos = new ArrayList<>();
         for (FriendsEntity entity : entities) {
-            if (entity.getDeleteDate() == null) {
-                dtos.add(new GetFriendsDto(
-                        entity.getAddDate(),
-                        null,
-                        entity.getFriendId(),
-                        entity.getFriendName()
-                ));
-            }
+            dtos.add(new GetFriendsDto(
+                    entity.getAddDate(),
+                    null,
+                    entity.getFriendId(),
+                    entity.getFriendName()
+            ));
         }
         return dtos;
     }
