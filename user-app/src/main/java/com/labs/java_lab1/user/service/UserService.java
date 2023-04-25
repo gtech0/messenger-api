@@ -179,6 +179,7 @@ public class UserService {
      * @return true - существует, false - нет
      */
     public boolean checkByIdAndName(UserFriendDto dto) {
+
         log.info("Checked by id and login");
         return userRepository.getByUuidAndFullName(dto.getFriendId(), dto.getFriendName()).isPresent();
     }
@@ -189,6 +190,7 @@ public class UserService {
      * @return true - существует, false - нет
      */
     public boolean checkById(UserFriendDto dto) {
+
         log.info("Checked by id");
         return userRepository.getByUuid(dto.getFriendId()).isPresent();
     }
@@ -199,8 +201,9 @@ public class UserService {
      * @return данные о пользователе
      */
     public UserFriendDto getById(UserFriendDto dto) {
-        log.info("Got user by id");
+
         UserEntity entity = userRepository.getByUuid(dto.getFriendId()).get();
+        log.info("Got user by id");
 
         return new UserFriendDto(
                 entity.getUuid(),

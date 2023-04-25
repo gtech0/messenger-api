@@ -8,6 +8,7 @@ import com.labs.java_lab1.friends.dto.*;
 import com.labs.java_lab1.friends.entity.BlacklistEntity;
 import com.labs.java_lab1.friends.exception.FriendAlreadyExistsException;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
+import com.labs.java_lab1.friends.exception.RestTemplateErrorHandler;
 import com.labs.java_lab1.friends.repository.BlacklistRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -44,6 +46,15 @@ public class BlacklistService {
 
     @Value("${app.security.integrations.api-key}")
     private String apiKey;
+
+    @Value("${integration-urls.check-id-name}")
+    private String checkIdNameUrl;
+
+    @Value("${integration-urls.check-id}")
+    private String checkIdUrl;
+
+    @Value("${integration-urls.sync}")
+    private String syncUrl;
 
     /**
      * Получение списка пользователей в блэклисте
@@ -79,6 +90,7 @@ public class BlacklistService {
      * @param dto дто с данными о пользователе
      * @return данные о добавленном пользователе
      */
+    @Transactional
     public AddFriendsDto save(AddFriendsDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -131,8 +143,7 @@ public class BlacklistService {
         String token = requestHeaders.getHeader("Authorization");
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8010/integration/users/checkidname";
-
+        restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", dto.getFriendId());
         map.put("friendName", dto.getFriendName());
@@ -144,7 +155,7 @@ public class BlacklistService {
 
         HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(checkIdNameUrl, request, String.class);
 
         if (!Objects.equals(response.getBody(), "true")) {
             log.error("User not found");
@@ -229,6 +240,7 @@ public class BlacklistService {
      * @param friendId id пользователя в блэклисте
      * @return дто с актульными данными об этом пользователе
      */
+    @Transactional
     public AddFriendsDto syncPerson(String friendId) {
 
         if (blacklistRepository.getAllByFriendId(friendId).isEmpty()) {
@@ -237,7 +249,7 @@ public class BlacklistService {
         }
 
         RestTemplate restTemplate = new RestTemplate();
-        String urlCheck = "http://localhost:8010/integration/users/checkid";
+        restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", friendId);
         map.put("friendName", "");
@@ -247,17 +259,15 @@ public class BlacklistService {
         headers.set("API_KEY", apiKey);
 
         HttpEntity<HashMap<String, String>> requestCheck = new HttpEntity<>(map, headers);
-
-        ResponseEntity<String> responseCheck = restTemplate.postForEntity(urlCheck, requestCheck, String.class);
+        ResponseEntity<String> responseCheck = restTemplate.postForEntity(checkIdUrl, requestCheck, String.class);
 
         if (!Objects.equals(responseCheck.getBody(), "true")) {
             log.error("User not found");
             throw new UserNotFoundException("User not found");
         }
 
-        String url = "http://localhost:8010/integration/users/sync";
         HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
-        ResponseEntity<AddFriendsDto> response = restTemplate.postForEntity(url, request, AddFriendsDto.class);
+        ResponseEntity<AddFriendsDto> response = restTemplate.postForEntity(syncUrl, request, AddFriendsDto.class);
 
         List<BlacklistEntity> entities = blacklistRepository.getAllByFriendId(friendId);
         for (BlacklistEntity entity : entities) {
@@ -278,6 +288,7 @@ public class BlacklistService {
      * @param friendId id удаляемого пользователя
      * @return дто удалённого пользователя
      */
+    @Transactional
     public ResponseEntity<DeleteFriendDto> deletePerson(String friendId) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

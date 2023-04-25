@@ -31,5 +31,10 @@ app:
       root-path: /integration
       api-key: ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX
 
+integration-urls:
+  check-id-name: http://localhost:8010/integration/users/checkidname
+  check-id: http://localhost:8010/integration/users/checkid
+  sync: http://localhost:8010/integration/users/sync
+
 server:
   port: 8082

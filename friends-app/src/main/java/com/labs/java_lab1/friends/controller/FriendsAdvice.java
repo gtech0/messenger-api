@@ -4,6 +4,8 @@ import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.ErrorResponse;
 import com.labs.java_lab1.friends.exception.FriendAlreadyExistsException;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
+import com.labs.java_lab1.friends.exception.ServiceUnavailableException;
+import com.labs.java_lab1.friends.exception.UnauthorizedException;
 import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -80,6 +82,27 @@ public class FriendsAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleFriendAlreadyExistsException(FriendAlreadyExistsException ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Обработка ошибок когда сервер недоступен
+     */
+    @ExceptionHandler(ServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ResponseEntity<Object> handleServiceUnavailableException(ServiceUnavailableException ex) {
+        ErrorResponse errorResponse =
+                new ErrorResponse(new Date(), HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
+    }
+
+    /**
+     * Обработка ошибки когда пользователь не авторизован
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
 }
