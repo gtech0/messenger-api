@@ -8,7 +8,7 @@ import com.labs.java_lab1.friends.dto.*;
 import com.labs.java_lab1.friends.entity.BlacklistEntity;
 import com.labs.java_lab1.friends.exception.FriendAlreadyExistsException;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
-import com.labs.java_lab1.friends.exception.RestTemplateErrorHandler;
+import com.labs.java_lab1.common.exception.RestTemplateErrorHandler;
 import com.labs.java_lab1.friends.repository.BlacklistRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

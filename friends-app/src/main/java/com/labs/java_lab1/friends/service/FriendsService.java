@@ -8,7 +8,7 @@ import com.labs.java_lab1.friends.dto.*;
 import com.labs.java_lab1.friends.entity.FriendsEntity;
 import com.labs.java_lab1.friends.exception.FriendAlreadyExistsException;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
-import com.labs.java_lab1.friends.exception.RestTemplateErrorHandler;
+import com.labs.java_lab1.common.exception.RestTemplateErrorHandler;
 import com.labs.java_lab1.friends.repository.FriendsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -323,5 +323,11 @@ public class FriendsService {
             }
         }
         return dtos;
+    }
+
+    public boolean checkById(ChatFriendDto dto) {
+
+        log.info("Checked by id");
+        return friendsRepository.getByUserIdAndFriendId(dto.getUserId(), dto.getFriendId()).isPresent();
     }
 }

@@ -1,4 +1,4 @@
-package com.labs.java_lab1.friends.exception;
+package com.labs.java_lab1.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;

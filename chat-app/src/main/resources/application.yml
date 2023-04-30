@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
 
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -30,6 +30,9 @@ app:
     integrations:
       root-path: /integration
       api-key: ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX
+
+integration-urls:
+  check-if-friend: http://localhost:8010/integration/friends/check-if-friend
 
 server:
   port: 8083

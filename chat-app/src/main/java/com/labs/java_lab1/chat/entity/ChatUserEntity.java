@@ -8,14 +8,13 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.Date;
 
 @Entity
-@Table(name = "message")
+@Table(name = "chat_user")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageEntity {
+public class ChatUserEntity {
 
     @Id
     @Column(name = "id")
@@ -24,9 +23,6 @@ public class MessageEntity {
     @Column(name = "chat_id")
     private String chatId;
 
-    @Column(name = "sent_date")
-    private Date sentDate;
-
-    @Column
-    private String message;
+    @Column(name = "user_id")
+    private String userId;
 }
