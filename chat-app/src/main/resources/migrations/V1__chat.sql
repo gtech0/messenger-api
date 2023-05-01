@@ -43,9 +43,12 @@ create table public.message
 (
     id        varchar(255) not null
         primary key,
+    avatar    varchar(255),
     chat_id   varchar(255),
+    full_name varchar(255),
     message   varchar(255),
-    sent_date timestamp
+    sent_date date,
+    user_id   varchar(255)
 );
 
 alter table public.message

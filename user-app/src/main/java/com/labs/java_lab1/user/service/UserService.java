@@ -1,5 +1,6 @@
 package com.labs.java_lab1.user.service;
 
+import com.labs.java_lab1.common.dto.UserMessageInfoDto;
 import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.AuthenticationResponse;
@@ -200,7 +201,7 @@ public class UserService {
      * @param dto дто с id
      * @return данные о пользователе
      */
-    public UserFriendDto getById(UserFriendDto dto) {
+    public UserFriendDto getFriendById(UserFriendDto dto) {
 
         UserEntity entity = userRepository.getByUuid(dto.getFriendId()).get();
         log.info("Got user by id");
@@ -208,6 +209,17 @@ public class UserService {
         return new UserFriendDto(
                 entity.getUuid(),
                 entity.getFullName()
+        );
+    }
+
+    public UserMessageInfoDto getMessageInfoById(UserIdDto dto) {
+
+        UserEntity entity = userRepository.getByUuid(dto.getUserId()).get();
+        log.info("Got user by id");
+
+        return new UserMessageInfoDto(
+                entity.getFullName(),
+                entity.getAvatar()
         );
     }
 

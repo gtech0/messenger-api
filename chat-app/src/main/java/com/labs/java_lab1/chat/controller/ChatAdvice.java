@@ -1,6 +1,8 @@
 package com.labs.java_lab1.chat.controller;
 
 import com.labs.java_lab1.chat.exception.AttachmentNotFoundException;
+import com.labs.java_lab1.chat.exception.ChatNotFoundException;
+import com.labs.java_lab1.chat.exception.ChatUserNotFoundException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.ErrorResponse;
 import lombok.NonNull;
@@ -50,7 +52,21 @@ public class ChatAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(AttachmentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<Object> handleUAttachmentNotFoundException(Exception ex) {
+    public ResponseEntity<Object> handleAttachmentNotFoundException(Exception ex) {
+        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(ChatNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<Object> handleChatNotFoundException(Exception ex) {
+        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(ChatUserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<Object> handleChatUserNotFoundException(Exception ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }

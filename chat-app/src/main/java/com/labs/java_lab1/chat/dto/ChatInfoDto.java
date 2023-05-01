@@ -3,16 +3,18 @@ package com.labs.java_lab1.chat.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
-public class CreateChatDto {
+public class ChatInfoDto {
 
     private String name;
 
     private String avatar;
 
-    List<String> users;
+    private String admin;
+
+    private Date creationDate;
 
 }

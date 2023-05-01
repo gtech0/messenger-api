@@ -4,10 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -24,6 +21,16 @@ public class MessageEntity {
     @Column(name = "chat_id")
     private String chatId;
 
+    @Column(name = "user_id")
+    private String userId;
+
+    @Column(name = "full_name")
+    private String fullName;
+
+    @Column
+    private String avatar;
+
+    @Temporal(TemporalType.DATE)
     @Column(name = "sent_date")
     private Date sentDate;
 

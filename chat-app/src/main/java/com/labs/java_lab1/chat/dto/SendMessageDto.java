@@ -10,9 +10,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendFriendMessageDto {
+public class SendMessageDto {
 
-    private String friendId;
+    private String receiverId;
 
     @Size(min = 1, max = 500)
     private String text;

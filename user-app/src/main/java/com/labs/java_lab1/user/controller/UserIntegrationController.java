@@ -1,6 +1,8 @@
 package com.labs.java_lab1.user.controller;
 
 import com.labs.java_lab1.user.dto.UserFriendDto;
+import com.labs.java_lab1.user.dto.UserIdDto;
+import com.labs.java_lab1.common.dto.UserMessageInfoDto;
 import com.labs.java_lab1.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +29,12 @@ public class UserIntegrationController {
 
     @PostMapping("/sync")
     public UserFriendDto userGetById(@RequestBody UserFriendDto dto) {
-        return userService.getById(dto);
+        return userService.getFriendById(dto);
+    }
+
+    @PostMapping("/get-user-message-info")
+    public UserMessageInfoDto userMessageInfo(@RequestBody UserIdDto dto) {
+        return userService.getMessageInfoById(dto);
     }
 
 }

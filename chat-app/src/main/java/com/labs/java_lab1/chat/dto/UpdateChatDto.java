@@ -7,12 +7,14 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class CreateChatDto {
+public class UpdateChatDto {
+
+    private String id;
 
     private String name;
 
     private String avatar;
 
-    List<String> users;
+    private List<String> users;
 
 }
