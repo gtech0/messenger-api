@@ -46,4 +46,14 @@ public class ChatController {
         return service.viewChat(id);
     }
 
+    @PostMapping("/list")
+    public ResponseEntity<List<ChatListDto>> getChatList(@RequestBody ChatListPaginationDto dto) {
+        return service.viewChatList(dto);
+    }
+
+    @PostMapping("/messages/search")
+    public ResponseEntity<List<MessageSearchDto>> messageSearch(@RequestBody MessageSearchBodyDto dto) {
+        return service.messageSearch(dto);
+    }
+
 }

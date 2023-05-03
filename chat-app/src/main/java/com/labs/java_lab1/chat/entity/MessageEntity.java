@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "message")
@@ -36,4 +37,7 @@ public class MessageEntity {
 
     @Column
     private String message;
+
+    @OneToMany(mappedBy = "message", orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<AttachmentEntity> attachments;
 }

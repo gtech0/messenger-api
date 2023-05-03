@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface ChatRepository extends JpaRepository<ChatEntity, String> {
     Optional<ChatEntity> getByUserIdAndFriendId(String userId, String friendId);
     Optional<ChatEntity> getByUuid(String id);
+    Optional<ChatEntity> getByUuidAndNameContaining(String id, String name);
 }

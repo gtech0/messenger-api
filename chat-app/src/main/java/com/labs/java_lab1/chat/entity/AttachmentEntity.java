@@ -4,10 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "attachment")
@@ -20,12 +17,13 @@ public class AttachmentEntity {
     @Column(name = "id")
     private String uuid;
 
-    @Column(name = "message_id")
-    private String messageId;
-
     @Column(name = "file_id")
     private String fileId;
 
     @Column(name = "file_name")
     private String fileName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "message_id")
+    private MessageEntity message;
 }

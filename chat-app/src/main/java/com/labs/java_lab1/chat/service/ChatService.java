@@ -15,6 +15,7 @@ import com.labs.java_lab1.common.security.JwtUserData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,7 +35,6 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final ChatUserRepository chatUserRepository;
     private final MessageRepository messageRepository;
-    private final AttachmentRepository attachmentRepository;
 
     @Value("${app.security.integrations.api-key}")
     private String apiKey;
@@ -83,6 +83,19 @@ public class ChatService {
                     null
             );
             chatRepository.save(chat);
+
+            chatUserRepository.save(new ChatUserEntity(
+                    UUID.randomUUID().toString(),
+                    chat.getUuid(),
+                    userId
+            ));
+
+            chatUserRepository.save(new ChatUserEntity(
+                    UUID.randomUUID().toString(),
+                    chat.getUuid(),
+                    dto.getReceiverId()
+            ));
+
         } else {
             chat = optionalChat.get();
         }
@@ -94,6 +107,7 @@ public class ChatService {
         ResponseEntity<UserMessageInfoDto> userDataResponse =
                 restTemplate.postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
 
+        List<AttachmentEntity> attachmentEntities = new ArrayList<>();
         MessageEntity messageEntity = new MessageEntity(
                 UUID.randomUUID().toString(),
                 chat.getUuid(),
@@ -101,18 +115,22 @@ public class ChatService {
                 userDataResponse.getBody().getFullName(),
                 userDataResponse.getBody().getAvatar(),
                 new Date(),
-                dto.getText()
+                dto.getText(),
+                null
         );
-        messageRepository.save(messageEntity);
 
         for (String attachmentId : dto.getAttachments()) {
-            attachmentRepository.save(new AttachmentEntity(
+            AttachmentEntity attachmentEntity = new AttachmentEntity(
                     UUID.randomUUID().toString(),
-                    messageEntity.getUuid(),
                     attachmentId,
-                    null
-            ));
+                    null,
+                    messageEntity
+            );
+            attachmentEntities.add(attachmentEntity);
         }
+
+        messageEntity.setAttachments(attachmentEntities);
+        messageRepository.save(messageEntity);
 
         return ResponseEntity.ok(new SendMessageDto(
                 dto.getReceiverId(),
@@ -270,6 +288,7 @@ public class ChatService {
         ResponseEntity<UserMessageInfoDto> userDataResponse =
                 restTemplate.postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
 
+        List<AttachmentEntity> attachmentEntities = new ArrayList<>();
         MessageEntity messageEntity = new MessageEntity(
                 UUID.randomUUID().toString(),
                 chat.get().getUuid(),
@@ -277,18 +296,22 @@ public class ChatService {
                 userDataResponse.getBody().getFullName(),
                 userDataResponse.getBody().getAvatar(),
                 new Date(),
-                dto.getText()
+                dto.getText(),
+                null
         );
-        messageRepository.save(messageEntity);
 
         for (String attachmentId : dto.getAttachments()) {
-            attachmentRepository.save(new AttachmentEntity(
+            AttachmentEntity attachmentEntity = new AttachmentEntity(
                     UUID.randomUUID().toString(),
-                    messageEntity.getUuid(),
                     attachmentId,
-                    null
-            ));
+                    null,
+                    messageEntity
+            );
+            attachmentEntities.add(attachmentEntity);
         }
+
+        messageEntity.setAttachments(attachmentEntities);
+        messageRepository.save(messageEntity);
 
         return ResponseEntity.ok(new SendMessageDto(
                 dto.getReceiverId(),
@@ -375,7 +398,7 @@ public class ChatService {
 
     private ResponseEntity<List<MessageInfoDto>> getMessageList(String id) {
         List<MessageEntity> messageEntities =
-                messageRepository.getAllByChatIdOrderBySentDateAsc(id);
+                messageRepository.getAllByChatIdOrderBySentDateDesc(id);
 
         List<MessageInfoDto> messageInfoDtoList = new ArrayList<>();
         for (MessageEntity entity : messageEntities) {
@@ -389,4 +412,194 @@ public class ChatService {
         }
         return ResponseEntity.ok(messageInfoDtoList);
     }
+
+    public ResponseEntity<List<ChatListDto>> viewChatList(ChatListPaginationDto dto) {
+
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((JwtUserData)authentication).getId().toString();
+
+        List<ChatUserEntity> chatUserEntityList = chatUserRepository.
+                getAllByUserId(userId, PageRequest.of(dto.getPageNo(), dto.getPageSize()));
+        List<ChatEntity> chatEntities = new ArrayList<>();
+        for (ChatUserEntity chatUserEntity : chatUserEntityList) {
+            if (dto.getName() == null) {
+                Optional<ChatEntity> chat = chatRepository.
+                        getByUuid(chatUserEntity.getChatId());
+
+                chat.ifPresent(chatEntities::add);
+            } else {
+                Optional<ChatEntity> chat = chatRepository.
+                        getByUuidAndNameContaining(chatUserEntity.getChatId(), dto.getName());
+
+                chat.ifPresent(chatEntities::add);
+            }
+        }
+
+        List<ChatListDto> chatListDtoList = new ArrayList<>();
+        for (ChatEntity chatEntity : chatEntities) {
+            Optional<MessageEntity> firstMessage = messageRepository.
+                    getFirstByChatIdOrderBySentDateDesc(chatEntity.getUuid());
+
+            if (firstMessage.isPresent()) {
+                if (chatEntity.getType() == ChatTypeEnum.CHAT) {
+                    chatListDtoList.add(new ChatListDto(
+                            chatEntity.getUuid(),
+                            chatEntity.getName(),
+                            firstMessage.get().getMessage(),
+                            firstMessage.get().getSentDate(),
+                            firstMessage.get().getUserId()
+                    ));
+                } else if (chatEntity.getType() == ChatTypeEnum.DIALOGUE) {
+                    if (!Objects.equals(firstMessage.get().getUserId(), userId)) {
+                        chatListDtoList.add(new ChatListDto(
+                                chatEntity.getUuid(),
+                                firstMessage.get().getFullName(),
+                                firstMessage.get().getMessage(),
+                                firstMessage.get().getSentDate(),
+                                firstMessage.get().getUserId()
+                        ));
+                    } else {
+                        RestTemplate restTemplate = new RestTemplate();
+                        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_JSON);
+                        headers.set("API_KEY", apiKey);
+
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("userId", chatEntity.getFriendId());
+
+                        HttpEntity<HashMap<String, String>> userDataRequest = new HttpEntity<>(map, headers);
+
+                        ResponseEntity<UserMessageInfoDto> userDataResponse = restTemplate.
+                                postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
+
+                        chatListDtoList.add(new ChatListDto(
+                                chatEntity.getUuid(),
+                                userDataResponse.getBody().getFullName(),
+                                firstMessage.get().getMessage(),
+                                firstMessage.get().getSentDate(),
+                                firstMessage.get().getUserId()
+                        ));
+                    }
+                }
+            }
+        }
+        return ResponseEntity.ok(chatListDtoList);
+    }
+
+    public ResponseEntity<List<MessageSearchDto>> messageSearch(MessageSearchBodyDto dto) {
+
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((JwtUserData)authentication).getId().toString();
+
+        List<ChatUserEntity> chatUserEntityList = chatUserRepository.getAllByUserId(userId);
+        List<ChatEntity> chatEntities = new ArrayList<>();
+        for (ChatUserEntity chatUserEntity : chatUserEntityList) {
+            Optional<ChatEntity> chat = chatRepository.
+                    getByUuid(chatUserEntity.getChatId());
+
+            chat.ifPresent(chatEntities::add);
+        }
+
+        List<MessageSearchDto> messageSearchDtoList = new ArrayList<>();
+        for (ChatEntity chatEntity : chatEntities) {
+            List<QueryMessageSearchDto> chatMessages = messageRepository.
+                    getAllByChatIdAndMessageLike(userId, chatEntity.getUuid(), dto.getText());
+
+            for (QueryMessageSearchDto messageEntity : chatMessages) {
+                if (chatEntity.getType() == ChatTypeEnum.CHAT) {
+                    messageSearchDtoList.add(new MessageSearchDto(
+                            chatEntity.getUuid(),
+                            chatEntity.getName(),
+                            messageEntity.getMessage(),
+                            messageEntity.getSentDate(),
+                            null
+                    ));
+                } else if (chatEntity.getType() == ChatTypeEnum.DIALOGUE) {
+                    if (!Objects.equals(messageEntity.getUserId(), userId)) {
+                        messageSearchDtoList.add(new MessageSearchDto(
+                                chatEntity.getUuid(),
+                                messageEntity.getFullName(),
+                                messageEntity.getMessage(),
+                                messageEntity.getSentDate(),
+                                null
+                        ));
+                    } else {
+                        RestTemplate restTemplate = new RestTemplate();
+                        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_JSON);
+                        headers.set("API_KEY", apiKey);
+
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("userId", chatEntity.getFriendId());
+
+                        HttpEntity<HashMap<String, String>> userDataRequest = new HttpEntity<>(map, headers);
+
+                        ResponseEntity<UserMessageInfoDto> userDataResponse = restTemplate.
+                                postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
+
+                        messageSearchDtoList.add(new MessageSearchDto(
+                                chatEntity.getUuid(),
+                                userDataResponse.getBody().getFullName(),
+                                messageEntity.getMessage(),
+                                messageEntity.getSentDate(),
+                                null
+                        ));
+                    }
+                }
+            }
+
+//            List<MessageEntity> chatMessages = messageRepository.
+//                    getAllByChatIdAndMessageContainingOrderBySentDateDesc(chatEntity.getUuid(), dto.getText());
+//
+//            for (MessageEntity messageEntity : chatMessages) {
+//                if (chatEntity.getType() == ChatTypeEnum.CHAT) {
+//                    messageSearchDtoList.add(new MessageSearchDto(
+//                            chatEntity.getUuid(),
+//                            chatEntity.getName(),
+//                            messageEntity.getMessage(),
+//                            messageEntity.getSentDate(),
+//                            null
+//                    ));
+//                } else if (chatEntity.getType() == ChatTypeEnum.DIALOGUE) {
+//                    if (!Objects.equals(messageEntity.getUserId(), userId)) {
+//                        messageSearchDtoList.add(new MessageSearchDto(
+//                                chatEntity.getUuid(),
+//                                messageEntity.getFullName(),
+//                                messageEntity.getMessage(),
+//                                messageEntity.getSentDate(),
+//                                null
+//                        ));
+//                    } else {
+//                        RestTemplate restTemplate = new RestTemplate();
+//                        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+//                        HttpHeaders headers = new HttpHeaders();
+//                        headers.setContentType(MediaType.APPLICATION_JSON);
+//                        headers.set("API_KEY", apiKey);
+//
+//                        HashMap<String, String> map = new HashMap<>();
+//                        map.put("userId", chatEntity.getFriendId());
+//
+//                        HttpEntity<HashMap<String, String>> userDataRequest = new HttpEntity<>(map, headers);
+//
+//                        ResponseEntity<UserMessageInfoDto> userDataResponse = restTemplate.
+//                                postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
+//
+//                        messageSearchDtoList.add(new MessageSearchDto(
+//                                chatEntity.getUuid(),
+//                                userDataResponse.getBody().getFullName(),
+//                                messageEntity.getMessage(),
+//                                messageEntity.getSentDate(),
+//                                null
+//                        ));
+//                    }
+//                }
+//            }
+
+        }
+        return ResponseEntity.ok(messageSearchDtoList);
+
+    }
+
 }

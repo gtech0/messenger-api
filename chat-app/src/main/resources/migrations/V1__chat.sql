@@ -33,7 +33,9 @@ create table public.chat_user
     id      varchar(255) not null
         primary key,
     chat_id varchar(255),
-    user_id varchar(255)
+    user_id varchar(255),
+    constraint uk1u508o4spt91a3bikx7vi10tf
+        unique (chat_id, user_id)
 );
 
 alter table public.chat_user

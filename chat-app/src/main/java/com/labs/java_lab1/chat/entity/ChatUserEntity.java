@@ -4,13 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
-@Table(name = "chat_user")
+@Table(name = "chat_user",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"chat_id", "user_id"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
