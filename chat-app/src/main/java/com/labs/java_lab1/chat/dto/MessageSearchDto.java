@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -19,6 +20,6 @@ public class MessageSearchDto {
 
     private Date sentDate;
 
-    private String attachmentName;
+    private List<String> attachments;
 
 }

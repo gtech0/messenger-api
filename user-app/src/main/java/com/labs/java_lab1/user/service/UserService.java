@@ -1,16 +1,19 @@
 package com.labs.java_lab1.user.service;
 
+import com.labs.java_lab1.common.dto.NotifDto;
+import com.labs.java_lab1.common.dto.NotifTypeEnum;
 import com.labs.java_lab1.common.dto.UserMessageInfoDto;
+import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.AuthenticationResponse;
 import com.labs.java_lab1.common.security.JwtUserData;
 import com.labs.java_lab1.user.dto.*;
 import com.labs.java_lab1.user.entity.UserEntity;
-import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +23,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -32,7 +36,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final AuthenticationService authenticationService;
     private final BCryptPasswordEncoder passwordEncoder;
-
+    private final StreamBridge streamBridge;
 
     /**
      * Регистрация пользователя
@@ -83,7 +87,7 @@ public class UserService {
      * @return jwt токен
      */
     @Transactional
-    public AuthenticationResponse authenticate(AuthDto dto) {
+    public AuthenticationResponse authenticate(AuthDto dto, HttpServletRequest request) {
 
         Optional<UserEntity> user = userRepository.findByLogin(dto.getLogin());
 
@@ -97,6 +101,16 @@ public class UserService {
 
         String token = authenticationService.generateToken(dto);
         log.info("Generated token");
+
+        String notifString =
+                "date=" + new Date() +
+                ", ip=" + request.getRemoteAddr();
+        NotifDto notifDto = new NotifDto(
+                dto.getLogin(),
+                NotifTypeEnum.LOG_IN,
+                notifString
+        );
+        streamBridge.send("userModifiedEvent-out-0", notifDto);
         return new AuthenticationResponse(token);
     }
 

@@ -4,10 +4,11 @@ import com.labs.java_lab1.chat.dto.*;
 import com.labs.java_lab1.chat.entity.*;
 import com.labs.java_lab1.chat.exception.ChatNotFoundException;
 import com.labs.java_lab1.chat.exception.ChatUserNotFoundException;
-import com.labs.java_lab1.chat.repository.AttachmentRepository;
 import com.labs.java_lab1.chat.repository.ChatRepository;
 import com.labs.java_lab1.chat.repository.ChatUserRepository;
 import com.labs.java_lab1.chat.repository.MessageRepository;
+import com.labs.java_lab1.common.dto.NotifDto;
+import com.labs.java_lab1.common.dto.NotifTypeEnum;
 import com.labs.java_lab1.common.dto.UserMessageInfoDto;
 import com.labs.java_lab1.common.exception.RestTemplateErrorHandler;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
@@ -15,6 +16,7 @@ import com.labs.java_lab1.common.security.JwtUserData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +37,7 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final ChatUserRepository chatUserRepository;
     private final MessageRepository messageRepository;
+    private final StreamBridge streamBridge;
 
     @Value("${app.security.integrations.api-key}")
     private String apiKey;
@@ -267,6 +270,7 @@ public class ChatService {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
+        String login = ((JwtUserData)authentication).getLogin();
 
         Optional<ChatUserEntity> optionalChatUser =
                 chatUserRepository.getByChatIdAndUserId(dto.getReceiverId(), userId);
@@ -312,6 +316,22 @@ public class ChatService {
 
         messageEntity.setAttachments(attachmentEntities);
         messageRepository.save(messageEntity);
+
+        if (chat.get().getType() == ChatTypeEnum.DIALOGUE) {
+            String notifString =
+                    "senderId=" + userId +
+                    ", date=" + new Date() +
+                    ", message=" + messageEntity
+                            .getMessage()
+                            .substring(0, Math.min(messageEntity.getMessage().length(), 100));
+
+            NotifDto notifDto = new NotifDto(
+                    login,
+                    NotifTypeEnum.NEW_MESSAGE,
+                    notifString
+            );
+            streamBridge.send("userModifiedEvent-out-0", notifDto);
+        }
 
         return ResponseEntity.ok(new SendMessageDto(
                 dto.getReceiverId(),
@@ -419,7 +439,7 @@ public class ChatService {
         String userId = ((JwtUserData)authentication).getId().toString();
 
         List<ChatUserEntity> chatUserEntityList = chatUserRepository.
-                getAllByUserId(userId, PageRequest.of(dto.getPageNo(), dto.getPageSize()));
+                getAllByUserId(userId, PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
         List<ChatEntity> chatEntities = new ArrayList<>();
         for (ChatUserEntity chatUserEntity : chatUserEntityList) {
             if (dto.getName() == null) {
@@ -507,13 +527,23 @@ public class ChatService {
                     getAllByChatIdAndMessageLike(userId, chatEntity.getUuid(), dto.getText());
 
             for (QueryMessageSearchDto messageEntity : chatMessages) {
+                Optional<MessageEntity> optionalMessage = messageRepository.
+                        getByUuid(messageEntity.getMessageId());
+
+                List<String> attachmentNames = new ArrayList<>();
+                if (optionalMessage.isPresent()) {
+                    for (AttachmentEntity attachment : optionalMessage.get().getAttachments()) {
+                        attachmentNames.add(attachment.getFileName());
+                    }
+                }
+
                 if (chatEntity.getType() == ChatTypeEnum.CHAT) {
                     messageSearchDtoList.add(new MessageSearchDto(
                             chatEntity.getUuid(),
                             chatEntity.getName(),
                             messageEntity.getMessage(),
                             messageEntity.getSentDate(),
-                            null
+                            attachmentNames
                     ));
                 } else if (chatEntity.getType() == ChatTypeEnum.DIALOGUE) {
                     if (!Objects.equals(messageEntity.getUserId(), userId)) {
@@ -522,7 +552,7 @@ public class ChatService {
                                 messageEntity.getFullName(),
                                 messageEntity.getMessage(),
                                 messageEntity.getSentDate(),
-                                null
+                                attachmentNames
                         ));
                     } else {
                         RestTemplate restTemplate = new RestTemplate();
@@ -544,7 +574,7 @@ public class ChatService {
                                 userDataResponse.getBody().getFullName(),
                                 messageEntity.getMessage(),
                                 messageEntity.getSentDate(),
-                                null
+                                attachmentNames
                         ));
                     }
                 }

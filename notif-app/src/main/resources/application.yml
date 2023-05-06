@@ -4,11 +4,11 @@ spring:
       ddl-auto: validate
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/chat_db
+    url: jdbc:postgresql://localhost:5432/notification_db
     username: postgres
     password: password
   flyway:
-    url: jdbc:postgresql://localhost:5432/chat_db
+    url: jdbc:postgresql://localhost:5432/notification_db
     user: postgres
     password: password
     locations: classpath:migrations
@@ -18,11 +18,11 @@ spring:
     username: ${RABBITMQ_USER:rmq-user}
     password: ${RABBITMQ_PASSWORD:rmq-pass}
   cloud.stream.bindings:
-    userModifiedEvent-out-0:
+    userModifiedEvent-in-0:
       destination: ${app.id}_USER_EVENT_MODIFIED
 
 app:
-  name: Chat Service
+  name: Notification Service
   id: ${MESSENGER_APP_ID:dmitry.g}
   security: # этот набор свойств парсит SecurityProps
     jwt-token:
@@ -39,9 +39,5 @@ app:
       root-path: /integration
       api-key: ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX
 
-integration-urls:
-  check-if-friend: http://localhost:8010/integration/friends/check-if-friend
-  get-user-message-info: http://localhost:8010/integration/users/get-user-message-info
-
 server:
-  port: 8083
+  port: 8084

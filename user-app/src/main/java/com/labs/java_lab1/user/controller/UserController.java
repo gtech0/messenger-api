@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -24,8 +25,9 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthDto dto) {
-        return ResponseEntity.ok(userService.authenticate(dto));
+    public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthDto dto,
+                                                               HttpServletRequest request) {
+        return ResponseEntity.ok(userService.authenticate(dto, request));
     }
 
     @PutMapping("/profile")

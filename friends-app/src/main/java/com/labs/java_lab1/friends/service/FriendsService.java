@@ -1,5 +1,7 @@
 package com.labs.java_lab1.friends.service;
 
+import com.labs.java_lab1.common.dto.NotifDto;
+import com.labs.java_lab1.common.dto.NotifTypeEnum;
 import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
@@ -12,6 +14,7 @@ import com.labs.java_lab1.common.exception.RestTemplateErrorHandler;
 import com.labs.java_lab1.friends.repository.FriendsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -38,10 +41,14 @@ public class FriendsService {
 
     private final FriendsRepository friendsRepository;
     private final BlacklistService blacklistService;
+    private final StreamBridge streamBridge;
 
-    public FriendsService(FriendsRepository friendsRepository, @Lazy BlacklistService blacklistService) {
+    public FriendsService(FriendsRepository friendsRepository,
+                          @Lazy BlacklistService blacklistService,
+                          StreamBridge streamBridge) {
         this.friendsRepository = friendsRepository;
         this.blacklistService = blacklistService;
+        this.streamBridge = streamBridge;
     }
 
     @Value("${app.security.integrations.api-key}")
@@ -173,6 +180,15 @@ public class FriendsService {
         FriendsEntity createdFriend = friendsRepository.save(entityFriend);
         friendsRepository.save(entityUser);
         log.info("Friend was added");
+
+        String notifString = "friendId=" + data.getId();
+        NotifDto notifDto = new NotifDto(
+                dto.getFriendId(),
+                NotifTypeEnum.NEW_FRIEND,
+                notifString
+        );
+        streamBridge.send("userModifiedEvent-out-0", notifDto);
+
         return new AddFriendsDto(
                 createdFriend.getFriendId(),
                 createdFriend.getFriendName()
@@ -277,6 +293,15 @@ public class FriendsService {
         friendsRepository.save(entityFriend.get());
         friendsRepository.save(entityUser.get());
         log.info("Friend was deleted");
+
+        String notifString = "friendId=" + userId;
+        NotifDto notifDto = new NotifDto(
+                friendId,
+                NotifTypeEnum.DELETE_FRIEND,
+                notifString
+        );
+        streamBridge.send("userModifiedEvent-out-0", notifDto);
+
         return ResponseEntity.ok(new DeleteFriendDto("Friend successfully deleted"));
     }
 

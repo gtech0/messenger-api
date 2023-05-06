@@ -1,5 +1,7 @@
 package com.labs.java_lab1.friends.service;
 
+import com.labs.java_lab1.common.dto.NotifDto;
+import com.labs.java_lab1.common.dto.NotifTypeEnum;
 import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
@@ -12,6 +14,7 @@ import com.labs.java_lab1.common.exception.RestTemplateErrorHandler;
 import com.labs.java_lab1.friends.repository.BlacklistRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -38,10 +41,14 @@ public class BlacklistService {
 
     private final BlacklistRepository blacklistRepository;
     private final FriendsService friendsService;
+    private final StreamBridge streamBridge;
 
-    public BlacklistService(BlacklistRepository blacklistRepository, @Lazy FriendsService friendsService) {
+    public BlacklistService(BlacklistRepository blacklistRepository,
+                            @Lazy FriendsService friendsService,
+                            StreamBridge streamBridge) {
         this.blacklistRepository = blacklistRepository;
         this.friendsService = friendsService;
+        this.streamBridge = streamBridge;
     }
 
     @Value("${app.security.integrations.api-key}")
@@ -183,6 +190,15 @@ public class BlacklistService {
         BlacklistEntity createdFriend = blacklistRepository.save(entityFriend);
         blacklistRepository.save(entityUser);
         log.info("Person was blacklisted");
+
+        String notifString = "blacklistedId=" + data.getId();
+        NotifDto notifDto = new NotifDto(
+                dto.getFriendId(),
+                NotifTypeEnum.NEW_BLACKLISTED,
+                notifString
+        );
+        streamBridge.send("userModifiedEvent-out-0", notifDto);
+
         return new AddFriendsDto(
                 createdFriend.getFriendId(),
                 createdFriend.getFriendName()
@@ -307,6 +323,15 @@ public class BlacklistService {
         blacklistRepository.save(entityFriend.get());
         blacklistRepository.save(entityUser.get());
         log.info("Person was deleted from blacklist");
+
+        String notifString = "blacklistedId=" + userId;
+        NotifDto notifDto = new NotifDto(
+                friendId,
+                NotifTypeEnum.DELETE_BLACKLISTED,
+                notifString
+        );
+        streamBridge.send("userModifiedEvent-out-0", notifDto);
+
         return ResponseEntity.ok(new DeleteFriendDto("Person successfully deleted"));
     }
 

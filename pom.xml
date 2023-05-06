@@ -32,6 +32,7 @@
 		<jjwt.version>0.11.5</jjwt.version>
 		<spring-gateway.version>3.1.6</spring-gateway.version>
 		<spring-cloud.version>2021.0.6</spring-cloud.version>
+		<spring-cloud-stream.version>3.2.8</spring-cloud-stream.version>
 	</properties>
 
 	<dependencyManagement>
@@ -110,6 +111,26 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-configuration-processor</artifactId>
 				<version>${spring-boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-amqp</artifactId>
+				<version>${spring-boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-stream</artifactId>
+				<version>${spring-cloud-stream.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+				<version>${spring-cloud-stream.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+				<version>${spring-cloud-stream.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -20,12 +20,12 @@ public class QueryMessageSearchDto {
 
     private Date sentDate;
 
-    private String attachmentName;
-
     private ChatTypeEnum type;
 
     private String userId;
 
     private String fullName;
+
+    private String messageId;
 
 }

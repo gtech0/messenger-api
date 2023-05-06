@@ -2,20 +2,28 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/friends_db
     username: postgres
     password: password
-
   flyway:
     url: jdbc:postgresql://localhost:5432/friends_db
     user: postgres
     password: password
     locations: classpath:migrations
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:rmq-user}
+    password: ${RABBITMQ_PASSWORD:rmq-pass}
+  cloud.stream.bindings:
+    userModifiedEvent-in-0:
+      destination: ${app.id}_USER_EVENT_MODIFIED
 
 app:
+  name: Friends Service
+  id: ${MESSENGER_APP_ID:dmitry.g}
   security: # этот набор свойств парсит SecurityProps
     jwt-token:
       permit-all:
