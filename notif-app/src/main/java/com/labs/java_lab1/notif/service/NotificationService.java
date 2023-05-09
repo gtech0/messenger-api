@@ -1,20 +1,31 @@
 package com.labs.java_lab1.notif.service;
 
 import com.labs.java_lab1.common.dto.NotifTypeEnum;
+import com.labs.java_lab1.common.exception.DateParseException;
 import com.labs.java_lab1.common.security.JwtUserData;
+import com.labs.java_lab1.notif.dto.NotifListDto;
+import com.labs.java_lab1.notif.dto.NotifListPaginationDto;
 import com.labs.java_lab1.notif.dto.StatusChangeDto;
 import com.labs.java_lab1.notif.dto.UnreadDto;
 import com.labs.java_lab1.notif.entity.NotificationEntity;
 import com.labs.java_lab1.notif.entity.StatusEnum;
 import com.labs.java_lab1.notif.exception.NotificationNotFoundException;
+import com.labs.java_lab1.notif.exception.TypeNotFoundException;
 import com.labs.java_lab1.notif.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -51,4 +62,57 @@ public class NotificationService {
         return countUnreadMessages();
     }
 
+    public List<NotifListDto> notifList(NotifListPaginationDto dto) {
+
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String login = ((JwtUserData)authentication).getLogin();
+
+        //SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        Date startDate = null;
+        Date endDate = null;
+
+        if (dto.getStartDate() != null) {
+            try {
+                startDate = java.util.Date.from(Instant.parse(dto.getStartDate()));
+            } catch (Exception e) {
+                throw new DateParseException("Invalid date format");
+            }
+        }
+
+        if (dto.getEndDate() != null) {
+            try {
+                endDate = java.util.Date.from(Instant.parse(dto.getEndDate()));
+            } catch (Exception e) {
+                throw new DateParseException("Invalid date format");
+            }
+        }
+
+        List<NotifTypeEnum> notifTypeEnumList = new ArrayList<>();
+        for (String typeCheck : dto.getTypes()) {
+            NotifTypeEnum typeEnum = null;
+            for (NotifTypeEnum type : NotifTypeEnum.values()) {
+                if (type.name().equalsIgnoreCase(typeCheck)) {
+                    typeEnum = type;
+                }
+            }
+            if (typeEnum == null) {
+                throw new TypeNotFoundException("Type is not found");
+            }
+            notifTypeEnumList.add(typeEnum);
+        }
+        if (notifTypeEnumList.isEmpty()) {
+            notifTypeEnumList = null;
+        }
+
+        if (dto.getPageNo() == null) {
+            dto.setPageNo(1);
+        }
+
+        if (dto.getPageSize() == null) {
+            dto.setPageSize(10);
+        }
+
+        PageRequest request = PageRequest.of(dto.getPageNo() - 1, dto.getPageSize());
+        return repository.getAllByFilters(login, startDate, endDate, dto.getText(), notifTypeEnumList, request);
+    }
 }

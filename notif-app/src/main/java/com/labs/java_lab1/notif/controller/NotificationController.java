@@ -1,10 +1,15 @@
 package com.labs.java_lab1.notif.controller;
 
+import com.labs.java_lab1.notif.dto.NotifListDto;
+import com.labs.java_lab1.notif.dto.NotifListPaginationDto;
 import com.labs.java_lab1.notif.dto.StatusChangeDto;
 import com.labs.java_lab1.notif.dto.UnreadDto;
 import com.labs.java_lab1.notif.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.text.ParseException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -23,4 +28,8 @@ public class NotificationController {
         return service.changeNotifStatus(dto);
     }
 
+    @PostMapping("/search")
+    public List<NotifListDto> notifList(@RequestBody NotifListPaginationDto dto) {
+        return service.notifList(dto);
+    }
 }

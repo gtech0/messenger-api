@@ -218,21 +218,25 @@ public class ChatService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("API_KEY", apiKey);
 
-        for (String friendId : dto.getUsers()) {
-            HashMap<String, String> map = new HashMap<>();
-            map.put("userId", userId);
-            map.put("friendId", friendId);
+        List<String> chatUserList = chatUserRepository.getAllByChatIdQuery(dto.getId());
+        List<String> addedUsers = new ArrayList<>();
+        List<String> removedUsers = new ArrayList<>();
 
-            HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(checkIfFriendUrl, request, String.class);
-
-            if (!Objects.equals(response.getBody(), "true")) {
-                log.error("Friend not found");
-                throw new UserNotFoundException("Friend " + friendId + " not found");
+        for (String currentUser : chatUserList) {
+            if (!dto.getUsers().contains(currentUser) && !Objects.equals(currentUser, chat.get().getAdminId())) {
+                removedUsers.add(currentUser);
             }
         }
 
-        for (String friendId : dto.getUsers()) {
+        for (String newUser : dto.getUsers()) {
+            if (!chatUserList.contains(newUser)) {
+                addedUsers.add(newUser);
+            }
+        }
+
+        checkForFriends(userId, restTemplate, headers, addedUsers);
+
+        for (String friendId : addedUsers) {
             Optional<ChatUserEntity> optionalChatUser =
                     chatUserRepository.getByChatIdAndUserId(dto.getId(), friendId);
 
@@ -245,8 +249,12 @@ public class ChatService {
                 chatUserRepository.save(userEntity);
             }
         }
-        dto.getUsers().add(userId);
-        chatUserRepository.deleteAllByChatIdAndUserIdNotIn(dto.getId(), dto.getUsers());
+
+        if (!Objects.equals(chat.get().getAdminId(), userId)) {
+            checkForFriends(userId, restTemplate, headers, removedUsers);
+        }
+
+        chatUserRepository.deleteAllByChatIdAndUserIdIn(dto.getId(), removedUsers);
 
         chat.get().setName(dto.getName());
         chat.get().setAvatar(dto.getAvatar());
@@ -256,8 +264,24 @@ public class ChatService {
                 chat.get().getUuid(),
                 chat.get().getName(),
                 chat.get().getAvatar(),
-                dto.getUsers()
+                chatUserRepository.getAllByChatIdQuery(dto.getId())
         ));
+    }
+
+    private void checkForFriends(String userId, RestTemplate restTemplate, HttpHeaders headers, List<String> userList) {
+        for (String friendId : userList) {
+            HashMap<String, String> map = new HashMap<>();
+            map.put("userId", userId);
+            map.put("friendId", friendId);
+
+            HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(checkIfFriendUrl, request, String.class);
+
+            if (!Objects.equals(response.getBody(), "true")) {
+                log.error("Friend not found");
+                throw new UserNotFoundException("Friend " + friendId + " not found");
+            }
+        }
     }
 
     @Transactional
@@ -280,7 +304,7 @@ public class ChatService {
         }
 
         RestTemplate restTemplate = new RestTemplate();
-        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+        restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("API_KEY", apiKey);
@@ -438,21 +462,28 @@ public class ChatService {
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
+        if (dto.getPageNo() == null) {
+            dto.setPageNo(1);
+        }
+
+        if (dto.getPageSize() == null) {
+            dto.setPageSize(50);
+        }
+
         List<ChatUserEntity> chatUserEntityList = chatUserRepository.
                 getAllByUserId(userId, PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
+
         List<ChatEntity> chatEntities = new ArrayList<>();
         for (ChatUserEntity chatUserEntity : chatUserEntityList) {
+            Optional<ChatEntity> chat;
             if (dto.getName() == null) {
-                Optional<ChatEntity> chat = chatRepository.
+                chat = chatRepository.
                         getByUuid(chatUserEntity.getChatId());
-
-                chat.ifPresent(chatEntities::add);
             } else {
-                Optional<ChatEntity> chat = chatRepository.
+                chat = chatRepository.
                         getByUuidAndNameContaining(chatUserEntity.getChatId(), dto.getName());
-
-                chat.ifPresent(chatEntities::add);
             }
+            chat.ifPresent(chatEntities::add);
         }
 
         List<ChatListDto> chatListDtoList = new ArrayList<>();

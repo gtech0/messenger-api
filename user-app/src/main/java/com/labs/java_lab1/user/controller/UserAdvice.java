@@ -34,7 +34,8 @@ public class UserAdvice extends ResponseEntityExceptionHandler {
                                                                   @NonNull HttpHeaders headers,
                                                                   @NonNull HttpStatus status,
                                                                   @NonNull WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(), "Validation error. Check 'errors' field for details.");
+        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(),
+                "Validation error. Check 'errors' field for details.");
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errorResponse.addValidationError(new Date(), fieldError.getField(), fieldError.getDefaultMessage());
         }

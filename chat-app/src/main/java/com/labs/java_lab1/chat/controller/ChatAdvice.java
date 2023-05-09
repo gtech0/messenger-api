@@ -1,8 +1,10 @@
 package com.labs.java_lab1.chat.controller;
 
+import com.labs.java_lab1.chat.exception.AccessDeniedException;
 import com.labs.java_lab1.chat.exception.AttachmentNotFoundException;
 import com.labs.java_lab1.chat.exception.ChatNotFoundException;
 import com.labs.java_lab1.chat.exception.ChatUserNotFoundException;
+import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.ErrorResponse;
 import lombok.NonNull;
@@ -43,31 +45,39 @@ public class ChatAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(UniqueConstraintViolationException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Object> handleUniqueConstraintViolationException(Exception ex) {
+    public ResponseEntity<Object> handleUniqueConstraintViolationException(UniqueConstraintViolationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     @ExceptionHandler(AttachmentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<Object> handleAttachmentNotFoundException(Exception ex) {
+    public ResponseEntity<Object> handleAttachmentNotFoundException(AttachmentNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @ExceptionHandler(ChatNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<Object> handleChatNotFoundException(Exception ex) {
+    public ResponseEntity<Object> handleChatNotFoundException(ChatNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @ExceptionHandler(ChatUserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<Object> handleChatUserNotFoundException(Exception ex) {
+    public ResponseEntity<Object> handleChatUserNotFoundException(ChatUserNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
 }

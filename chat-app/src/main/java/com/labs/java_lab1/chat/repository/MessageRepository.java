@@ -16,15 +16,15 @@ public interface MessageRepository extends JpaRepository<MessageEntity, String> 
     Optional<MessageEntity> getFirstByChatIdOrderBySentDateDesc(String chatId);
     @Query(value =
             "SELECT DISTINCT new com.labs.java_lab1.chat.dto.QueryMessageSearchDto(" +
-            "msg.chatId, c.name, msg.message, msg.sentDate, " +
-            "c.type, msg.userId, msg.fullName, msg.uuid) " +
-            "FROM MessageEntity msg " +
-            "JOIN AttachmentEntity atch ON msg.uuid = atch.message.uuid " +
-            "JOIN ChatEntity c ON msg.chatId = c.uuid " +
-            "JOIN ChatUserEntity cu ON c.uuid = cu.chatId " +
-            "WHERE cu.userId = :userId " +
-            "AND c.uuid = :chatId " +
-            "AND (msg.message LIKE CONCAT('%', :message, '%') " +
-            "OR atch.fileName LIKE CONCAT('%', :message, '%'))")
+                    "msg.chatId, c.name, msg.message, msg.sentDate, " +
+                    "c.type, msg.userId, msg.fullName, msg.uuid) " +
+                    "FROM MessageEntity msg " +
+                    "JOIN AttachmentEntity atch ON msg.uuid = atch.message.uuid " +
+                    "JOIN ChatEntity c ON msg.chatId = c.uuid " +
+                    "JOIN ChatUserEntity cu ON c.uuid = cu.chatId " +
+                    "WHERE cu.userId = :userId " +
+                    "AND c.uuid = :chatId " +
+                    "AND (msg.message LIKE CONCAT('%', :message, '%') " +
+                    "OR atch.fileName LIKE CONCAT('%', :message, '%'))")
     List<QueryMessageSearchDto> getAllByChatIdAndMessageLike(String userId, String chatId, String message);
 }
