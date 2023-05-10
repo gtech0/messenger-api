@@ -40,7 +40,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getSelfProfile());
     }
 
-    @GetMapping("/list/{login}")
+    @GetMapping("/profile/{login}")
     public ResponseEntity<UserDto> getByLogin(@PathVariable String login) {
         return ResponseEntity.ok(userService.getByLogin(login));
     }

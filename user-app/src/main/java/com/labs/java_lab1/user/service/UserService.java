@@ -3,7 +3,9 @@ package com.labs.java_lab1.user.service;
 import com.labs.java_lab1.common.dto.NotifDto;
 import com.labs.java_lab1.common.dto.NotifTypeEnum;
 import com.labs.java_lab1.common.dto.UserMessageInfoDto;
+import com.labs.java_lab1.common.dto.UserSyncDto;
 import com.labs.java_lab1.common.exception.DateParseException;
+import com.labs.java_lab1.common.exception.RestTemplateErrorHandler;
 import com.labs.java_lab1.common.exception.UniqueConstraintViolationException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.AuthenticationResponse;
@@ -13,15 +15,19 @@ import com.labs.java_lab1.user.entity.UserEntity;
 import com.labs.java_lab1.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.function.StreamBridge;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
@@ -37,6 +43,12 @@ public class UserService {
     private final AuthenticationService authenticationService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StreamBridge streamBridge;
+
+    @Value("${app.security.integrations.api-key}")
+    private String apiKey;
+
+    @Value("${integration-urls.check-if-blacklisted}")
+    private String checkIfBlacklisted;
 
     /**
      * Регистрация пользователя
@@ -110,7 +122,7 @@ public class UserService {
                 NotifTypeEnum.LOG_IN,
                 notifString
         );
-        streamBridge.send("userModifiedEvent-out-0", notifDto);
+        streamBridge.send("userNotifiedEvent-out-0", notifDto);
         return new AuthenticationResponse(token);
     }
 
@@ -124,6 +136,7 @@ public class UserService {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String login = ((JwtUserData)authentication).getLogin();
+        String userId = ((JwtUserData)authentication).getId().toString();
 
         if (userRepository.findByLogin(login).isEmpty()) {
             log.error("User " + login + " was not found");
@@ -139,6 +152,9 @@ public class UserService {
 
         UserEntity createdEntity = userRepository.save(entity);
         log.info("User was updated");
+
+        streamBridge.send("userModifiedEvent-out-0", new UserSyncDto(userId, dto.getFullName()));
+
         return new UserDto(
                 createdEntity.getLogin(),
                 createdEntity.getEmail(),
@@ -154,9 +170,7 @@ public class UserService {
      * Показ данных своего профиля
      * @return данные профиля
      */
-    @Transactional
     public UserDto getSelfProfile() {
-
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = ((JwtUserData)authentication).getLogin();
 
@@ -170,12 +184,35 @@ public class UserService {
      */
     public UserDto getByLogin(String login) {
 
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = ((JwtUserData)authentication).getId().toString();
+
         if (userRepository.findByLogin(login).isEmpty()) {
             log.error("User " + login + " was not found");
             throw new UserNotFoundException("User " + login + " was not found");
         }
 
         UserEntity entity = userRepository.findByLogin(login).get();
+
+        if (!Objects.equals(userId, entity.getUuid())) {
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+            HashMap<String, String> map = new HashMap<>();
+            map.put("userId", userId);
+            map.put("friendId", entity.getUuid());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("API_KEY", apiKey);
+
+            HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(checkIfBlacklisted, request, String.class);
+
+            if (Objects.equals(response.getBody(), "true")) {
+                log.error("User blacklisted");
+                throw new UserNotFoundException("User blacklisted");
+            }
+        }
 
         return new UserDto(
                 entity.getLogin(),
@@ -204,7 +241,7 @@ public class UserService {
      * @param dto дто с id
      * @return true - существует, false - нет
      */
-    public boolean checkById(UserFriendDto dto) {
+    public boolean checkById(UserFriendIdDto dto) {
 
         log.info("Checked by id");
         return userRepository.getByUuid(dto.getFriendId()).isPresent();
@@ -215,7 +252,7 @@ public class UserService {
      * @param dto дто с id
      * @return данные о пользователе
      */
-    public UserFriendDto getFriendById(UserFriendDto dto) {
+    public UserFriendDto getFriendById(UserFriendIdDto dto) {
 
         UserEntity entity = userRepository.getByUuid(dto.getFriendId()).get();
         log.info("Got user by id");
@@ -257,22 +294,14 @@ public class UserService {
             }
         }
 
-        UserEntity example = UserEntity
-                .builder()
-                .login(filters.get("login"))
-                .fullName(filters.get("fullName"))
-                .birthDate(date)
-                .phoneNumber(filters.get("phoneNumber"))
-                .city(filters.get("city"))
-                .build();
-
         Map<String, String> sortingMap = dto.getSorting();
         Sort sort = null;
         Sort fullSort = null;
         if (!sortingMap.isEmpty()) {
             for (String field : sortingMap.keySet()) {
                 String order = sortingMap.get(field);
-                sort = order.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(field).ascending()
+                sort = order.equalsIgnoreCase(Sort.Direction.ASC.name())
+                        ? Sort.by(field).ascending()
                         : Sort.by(field).descending();
                 if (fullSort == null) {
                     fullSort = sort;
@@ -286,21 +315,16 @@ public class UserService {
             sort = Sort.by("fullName").ascending();
         }
 
-        Page<UserEntity> entities = userRepository.findAll(Example.of(example),
-                PageRequest.of(dto.getPageNo() - 1, dto.getPageSize(), sort));
+        List<UserDto> entities = userRepository
+                .findAllQuery(
+                        filters.get("login"),
+                        filters.get("fullName"),
+                        date,
+                        filters.get("phoneNumber"),
+                        filters.get("city"),
+                        PageRequest.of(dto.getPageNo() - 1, dto.getPageSize(), sort)
+                );
         log.info("Found entities");
-        List<UserDto> dtos = new ArrayList<>();
-        for (UserEntity entity : entities) {
-            dtos.add(new UserDto(
-                    entity.getLogin(),
-                    entity.getEmail(),
-                    entity.getFullName(),
-                    entity.getBirthDate(),
-                    entity.getPhoneNumber(),
-                    entity.getCity(),
-                    entity.getAvatar()
-            ));
-        }
-        return dtos;
+        return entities;
     }
 }

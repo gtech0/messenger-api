@@ -98,7 +98,7 @@ public class BlacklistService {
      * @return данные о добавленном пользователе
      */
     @Transactional
-    public AddFriendsDto save(AddFriendsDto dto) {
+    public AddFriendsDto save(AddFriendsIdDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         JwtUserData data = (JwtUserData)authentication;
@@ -134,6 +134,15 @@ public class BlacklistService {
 
             blacklistRepository.save(entityByUserFriend.get());
             blacklistRepository.save(entityByFriendUser.get());
+
+            String notifString = "blacklistedId=" + data.getId();
+            NotifDto notifDto = new NotifDto(
+                    dto.getFriendId(),
+                    NotifTypeEnum.NEW_BLACKLISTED,
+                    notifString
+            );
+            streamBridge.send("userNotifiedEvent-out-0", notifDto);
+
             return new AddFriendsDto(
                     entityByUserFriend.get().getFriendId(),
                     entityByUserFriend.get().getFriendName()
@@ -150,10 +159,9 @@ public class BlacklistService {
         String token = requestHeaders.getHeader("Authorization");
 
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", dto.getFriendId());
-        map.put("friendName", dto.getFriendName());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -161,21 +169,24 @@ public class BlacklistService {
         headers.set("Authorization", token.substring(7));
 
         HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(checkIdNameUrl, request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(checkIdUrl, request, String.class);
 
         if (!Objects.equals(response.getBody(), "true")) {
             log.error("User not found");
             throw new UserNotFoundException("User not found");
         }
 
+        HttpEntity<HashMap<String, String>> requestUserData = new HttpEntity<>(map, headers);
+        ResponseEntity<AddFriendsDto> responseUserData = restTemplate
+                .postForEntity(syncUrl, requestUserData, AddFriendsDto.class);
+
         BlacklistEntity entityFriend = new BlacklistEntity(
                 UUID.randomUUID().toString(),
                 new Date(),
                 null,
                 data.getId().toString(),
-                dto.getFriendId(),
-                dto.getFriendName()
+                responseUserData.getBody().getFriendId(),
+                responseUserData.getBody().getFriendName()
         );
 
         BlacklistEntity entityUser = new BlacklistEntity(
@@ -197,7 +208,7 @@ public class BlacklistService {
                 NotifTypeEnum.NEW_BLACKLISTED,
                 notifString
         );
-        streamBridge.send("userModifiedEvent-out-0", notifDto);
+        streamBridge.send("userNotifiedEvent-out-0", notifDto);
 
         return new AddFriendsDto(
                 createdFriend.getFriendId(),
@@ -251,6 +262,12 @@ public class BlacklistService {
         }
     }
 
+    public boolean checkById(ChatFriendDto dto) {
+
+        log.info("Checked by id");
+        return blacklistRepository.getByUserIdAndFriendId(dto.getUserId(), dto.getFriendId()).isPresent();
+    }
+
     /**
      * Синхронизация данных о конкретном пользователе в блэклисте
      * @param friendId id пользователя в блэклисте
@@ -268,7 +285,6 @@ public class BlacklistService {
         restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", friendId);
-        map.put("friendName", "");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -330,7 +346,7 @@ public class BlacklistService {
                 NotifTypeEnum.DELETE_BLACKLISTED,
                 notifString
         );
-        streamBridge.send("userModifiedEvent-out-0", notifDto);
+        streamBridge.send("userNotifiedEvent-out-0", notifDto);
 
         return ResponseEntity.ok(new DeleteFriendDto("Person successfully deleted"));
     }

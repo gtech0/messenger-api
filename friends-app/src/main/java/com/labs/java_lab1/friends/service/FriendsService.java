@@ -88,7 +88,7 @@ public class FriendsService {
     }
 
     @Transactional
-    public AddFriendsDto save(AddFriendsDto dto) {
+    public AddFriendsDto save(AddFriendsIdDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         JwtUserData data = (JwtUserData)authentication;
@@ -124,6 +124,15 @@ public class FriendsService {
 
             friendsRepository.save(entityByUserFriend.get());
             friendsRepository.save(entityByFriendUser.get());
+
+            String notifString = "friendId=" + data.getId();
+            NotifDto notifDto = new NotifDto(
+                    dto.getFriendId(),
+                    NotifTypeEnum.NEW_FRIEND,
+                    notifString
+            );
+            streamBridge.send("userNotifiedEvent-out-0", notifDto);
+
             return new AddFriendsDto(
                     entityByUserFriend.get().getFriendId(),
                     entityByUserFriend.get().getFriendName()
@@ -143,7 +152,6 @@ public class FriendsService {
         restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", dto.getFriendId());
-        map.put("friendName", dto.getFriendName());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -151,21 +159,24 @@ public class FriendsService {
         headers.set("Authorization", token.substring(7));
 
         HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(checkIdNameUrl, request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(checkIdUrl, request, String.class);
 
         if (!Objects.equals(response.getBody(), "true")) {
             log.error("User not found");
             throw new UserNotFoundException("User not found");
         }
 
+        HttpEntity<HashMap<String, String>> requestUserData = new HttpEntity<>(map, headers);
+        ResponseEntity<AddFriendsDto> responseUserData = restTemplate
+                .postForEntity(syncUrl, requestUserData, AddFriendsDto.class);
+
         FriendsEntity entityFriend = new FriendsEntity(
                 UUID.randomUUID().toString(),
                 new Date(),
                 null,
                 data.getId().toString(),
-                dto.getFriendId(),
-                dto.getFriendName()
+                responseUserData.getBody().getFriendId(),
+                responseUserData.getBody().getFriendName()
         );
 
         FriendsEntity entityUser = new FriendsEntity(
@@ -187,7 +198,7 @@ public class FriendsService {
                 NotifTypeEnum.NEW_FRIEND,
                 notifString
         );
-        streamBridge.send("userModifiedEvent-out-0", notifDto);
+        streamBridge.send("userNotifiedEvent-out-0", notifDto);
 
         return new AddFriendsDto(
                 createdFriend.getFriendId(),
@@ -243,7 +254,6 @@ public class FriendsService {
         restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", friendId);
-        map.put("friendName", "");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -300,7 +310,7 @@ public class FriendsService {
                 NotifTypeEnum.DELETE_FRIEND,
                 notifString
         );
-        streamBridge.send("userModifiedEvent-out-0", notifDto);
+        streamBridge.send("userNotifiedEvent-out-0", notifDto);
 
         return ResponseEntity.ok(new DeleteFriendDto("Friend successfully deleted"));
     }

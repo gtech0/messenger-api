@@ -1,6 +1,7 @@
 package com.labs.java_lab1.user.controller;
 
 import com.labs.java_lab1.user.dto.UserFriendDto;
+import com.labs.java_lab1.user.dto.UserFriendIdDto;
 import com.labs.java_lab1.user.dto.UserIdDto;
 import com.labs.java_lab1.common.dto.UserMessageInfoDto;
 import com.labs.java_lab1.user.service.UserService;
@@ -23,12 +24,12 @@ public class UserIntegrationController {
     }
 
     @PostMapping("/checkid")
-    public boolean userExistsById(@RequestBody UserFriendDto dto) {
+    public boolean userExistsById(@RequestBody UserFriendIdDto dto) {
         return userService.checkById(dto);
     }
 
     @PostMapping("/sync")
-    public UserFriendDto userGetById(@RequestBody UserFriendDto dto) {
+    public UserFriendDto userGetById(@RequestBody UserFriendIdDto dto) {
         return userService.getFriendById(dto);
     }
 
@@ -36,5 +37,4 @@ public class UserIntegrationController {
     public UserMessageInfoDto userMessageInfo(@RequestBody UserIdDto dto) {
         return userService.getMessageInfoById(dto);
     }
-
 }

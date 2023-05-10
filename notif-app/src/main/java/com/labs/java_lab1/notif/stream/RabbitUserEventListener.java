@@ -21,7 +21,7 @@ public class RabbitUserEventListener {
     private final NotificationRepository repository;
 
     @Bean
-    public Consumer<NotifDto> userModifiedEvent() {
+    public Consumer<NotifDto> userNotifiedEvent() {
         return message -> {
             repository.save(new NotificationEntity(
                     UUID.randomUUID().toString(),

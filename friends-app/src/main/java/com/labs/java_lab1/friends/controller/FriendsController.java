@@ -22,7 +22,7 @@ public class FriendsController {
     }
 
     @PostMapping("/add")
-    public AddFriendsDto addFriend(@Valid @RequestBody AddFriendsDto dto) {
+    public AddFriendsDto addFriend(@Valid @RequestBody AddFriendsIdDto dto) {
         return friendsService.save(dto);
     }
 

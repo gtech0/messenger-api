@@ -354,7 +354,7 @@ public class ChatService {
                     NotifTypeEnum.NEW_MESSAGE,
                     notifString
             );
-            streamBridge.send("userModifiedEvent-out-0", notifDto);
+            streamBridge.send("userNotifiedEvent-out-0", notifDto);
         }
 
         return ResponseEntity.ok(new SendMessageDto(
@@ -441,8 +441,7 @@ public class ChatService {
     }
 
     private ResponseEntity<List<MessageInfoDto>> getMessageList(String id) {
-        List<MessageEntity> messageEntities =
-                messageRepository.getAllByChatIdOrderBySentDateDesc(id);
+        List<MessageEntity> messageEntities = messageRepository.getAllByChatIdOrderBySentDateDesc(id);
 
         List<MessageInfoDto> messageInfoDtoList = new ArrayList<>();
         for (MessageEntity entity : messageEntities) {
@@ -488,8 +487,8 @@ public class ChatService {
 
         List<ChatListDto> chatListDtoList = new ArrayList<>();
         for (ChatEntity chatEntity : chatEntities) {
-            Optional<MessageEntity> firstMessage = messageRepository.
-                    getFirstByChatIdOrderBySentDateDesc(chatEntity.getUuid());
+            Optional<MessageEntity> firstMessage = messageRepository
+                    .getFirstByChatIdOrderBySentDateDesc(chatEntity.getUuid());
 
             if (firstMessage.isPresent()) {
                 if (chatEntity.getType() == ChatTypeEnum.CHAT) {
@@ -546,20 +545,19 @@ public class ChatService {
         List<ChatUserEntity> chatUserEntityList = chatUserRepository.getAllByUserId(userId);
         List<ChatEntity> chatEntities = new ArrayList<>();
         for (ChatUserEntity chatUserEntity : chatUserEntityList) {
-            Optional<ChatEntity> chat = chatRepository.
-                    getByUuid(chatUserEntity.getChatId());
+            Optional<ChatEntity> chat = chatRepository.getByUuid(chatUserEntity.getChatId());
 
             chat.ifPresent(chatEntities::add);
         }
 
         List<MessageSearchDto> messageSearchDtoList = new ArrayList<>();
         for (ChatEntity chatEntity : chatEntities) {
-            List<QueryMessageSearchDto> chatMessages = messageRepository.
-                    getAllByChatIdAndMessageLike(userId, chatEntity.getUuid(), dto.getText());
+            List<QueryMessageSearchDto> chatMessages = messageRepository
+                    .getAllByChatIdAndMessageLike(userId, chatEntity.getUuid(), dto.getText());
 
             for (QueryMessageSearchDto messageEntity : chatMessages) {
-                Optional<MessageEntity> optionalMessage = messageRepository.
-                        getByUuid(messageEntity.getMessageId());
+                Optional<MessageEntity> optionalMessage = messageRepository
+                        .getByUuid(messageEntity.getMessageId());
 
                 List<String> attachmentNames = new ArrayList<>();
                 if (optionalMessage.isPresent()) {
@@ -610,57 +608,7 @@ public class ChatService {
                     }
                 }
             }
-
-//            List<MessageEntity> chatMessages = messageRepository.
-//                    getAllByChatIdAndMessageContainingOrderBySentDateDesc(chatEntity.getUuid(), dto.getText());
-//
-//            for (MessageEntity messageEntity : chatMessages) {
-//                if (chatEntity.getType() == ChatTypeEnum.CHAT) {
-//                    messageSearchDtoList.add(new MessageSearchDto(
-//                            chatEntity.getUuid(),
-//                            chatEntity.getName(),
-//                            messageEntity.getMessage(),
-//                            messageEntity.getSentDate(),
-//                            null
-//                    ));
-//                } else if (chatEntity.getType() == ChatTypeEnum.DIALOGUE) {
-//                    if (!Objects.equals(messageEntity.getUserId(), userId)) {
-//                        messageSearchDtoList.add(new MessageSearchDto(
-//                                chatEntity.getUuid(),
-//                                messageEntity.getFullName(),
-//                                messageEntity.getMessage(),
-//                                messageEntity.getSentDate(),
-//                                null
-//                        ));
-//                    } else {
-//                        RestTemplate restTemplate = new RestTemplate();
-//                        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
-//                        HttpHeaders headers = new HttpHeaders();
-//                        headers.setContentType(MediaType.APPLICATION_JSON);
-//                        headers.set("API_KEY", apiKey);
-//
-//                        HashMap<String, String> map = new HashMap<>();
-//                        map.put("userId", chatEntity.getFriendId());
-//
-//                        HttpEntity<HashMap<String, String>> userDataRequest = new HttpEntity<>(map, headers);
-//
-//                        ResponseEntity<UserMessageInfoDto> userDataResponse = restTemplate.
-//                                postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
-//
-//                        messageSearchDtoList.add(new MessageSearchDto(
-//                                chatEntity.getUuid(),
-//                                userDataResponse.getBody().getFullName(),
-//                                messageEntity.getMessage(),
-//                                messageEntity.getSentDate(),
-//                                null
-//                        ));
-//                    }
-//                }
-//            }
-
         }
         return ResponseEntity.ok(messageSearchDtoList);
-
     }
-
 }

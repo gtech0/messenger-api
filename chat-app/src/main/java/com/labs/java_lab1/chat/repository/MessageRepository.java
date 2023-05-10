@@ -12,6 +12,7 @@ import java.util.Optional;
 @Repository
 public interface MessageRepository extends JpaRepository<MessageEntity, String> {
     Optional<MessageEntity> getByUuid(String id);
+    List<MessageEntity> getAllByUserId(String userId);
     List<MessageEntity> getAllByChatIdOrderBySentDateDesc(String chatId);
     Optional<MessageEntity> getFirstByChatIdOrderBySentDateDesc(String chatId);
     @Query(value =

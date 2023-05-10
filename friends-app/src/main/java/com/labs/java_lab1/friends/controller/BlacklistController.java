@@ -22,7 +22,7 @@ public class BlacklistController {
     }
 
     @PostMapping("/add")
-    public AddFriendsDto addFriend(@Valid @RequestBody AddFriendsDto dto) {
+    public AddFriendsDto addFriend(@Valid @RequestBody AddFriendsIdDto dto) {
         return blacklistService.save(dto);
     }
 

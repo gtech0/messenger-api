@@ -18,6 +18,8 @@ spring:
     username: ${RABBITMQ_USER:rmq-user}
     password: ${RABBITMQ_PASSWORD:rmq-pass}
   cloud.stream.bindings:
+    userNotifiedEvent-out-0:
+      destination: ${app.id}_USER_EVENT_NOTIFIED
     userModifiedEvent-out-0:
       destination: ${app.id}_USER_EVENT_MODIFIED
 
@@ -38,6 +40,9 @@ app:
     integrations:
       root-path: /integration
       api-key: ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX
+
+integration-urls:
+  check-if-blacklisted: http://localhost:8010/integration/friends/check-if-blacklisted
 
 server:
   port: 8081
