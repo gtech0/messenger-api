@@ -28,7 +28,6 @@ public class RabbitUserEventListener {
             for (FriendsEntity friend : friendList) {
                 friend.setFriendName(message.getFullName());
                 friendsRepository.save(friend);
-                log.info(message.getFullName());
             }
 
             List<BlacklistEntity> blackList = blacklistRepository.getAllByFriendId(message.getUserId());

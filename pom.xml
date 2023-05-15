@@ -33,6 +33,7 @@
 		<spring-gateway.version>3.1.6</spring-gateway.version>
 		<spring-cloud.version>2021.0.6</spring-cloud.version>
 		<spring-cloud-stream.version>3.2.8</spring-cloud-stream.version>
+		<minio.version>8.5.2</minio.version>
 	</properties>
 
 	<dependencyManagement>
@@ -131,6 +132,11 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-stream-rabbit</artifactId>
 				<version>${spring-cloud-stream.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.minio</groupId>
+				<artifactId>minio</artifactId>
+				<version>${minio.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

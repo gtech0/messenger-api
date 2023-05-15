@@ -21,7 +21,6 @@ public class RabbitUserEventListener {
     @Bean
     public Consumer<UserSyncDto> userModifiedEvent() {
         return message -> {
-            log.info("chat");
             List<MessageEntity> messageList = messageRepository.getAllByUserId(message.getUserId());
             for (MessageEntity messageEntity : messageList) {
                 messageEntity.setFullName(message.getFullName());

@@ -1,9 +1,8 @@
 package com.labs.java_lab1.user.service;
 
-import com.labs.java_lab1.user.dto.AuthDto;
-import com.labs.java_lab1.common.exception.UserNotFoundException;
-import com.labs.java_lab1.user.repository.UserRepository;
 import com.labs.java_lab1.common.security.props.SecurityProps;
+import com.labs.java_lab1.user.dto.AuthDto;
+import com.labs.java_lab1.user.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;

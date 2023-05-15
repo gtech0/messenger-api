@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  minio:
+    image: bitnami/minio:2023.4.28
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: adminqwerty
+    volumes:
+      - minio-data:/data
+    ports:
+      - 9900:9000
+      - 9901:9001
+
+volumes:
+  minio-data:

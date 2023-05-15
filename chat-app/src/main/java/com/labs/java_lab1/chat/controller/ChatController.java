@@ -5,8 +5,10 @@ import com.labs.java_lab1.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -16,14 +18,15 @@ public class ChatController {
 
     private final ChatService service;
 
-    @PostMapping("/message/private")
-    public ResponseEntity<SendMessageDto> sendFriendMessage(@Valid @RequestBody SendMessageDto dto) {
-        return service.sendFriendMessage(dto);
-    }
+//    @PostMapping("/message/private")
+//    public ResponseEntity<SendChatMessageDto> sendFriendMessage(@Valid @RequestBody SendChatMessageDto dto) {
+//        return service.sendFriendMessage(dto);
+//    }
 
     @PostMapping("/message/public")
-    public ResponseEntity<SendMessageDto> sendChatMessage(@Valid @RequestBody SendMessageDto dto) {
-        return service.sendChatMessage(dto);
+    public ResponseEntity<SendChatMessageDto> sendChatMessage(@Valid @RequestPart("dto") SendChatMessageDto dto,
+                                                              @RequestPart("files") List<MultipartFile> files) throws IOException {
+        return service.sendChatMessage(dto, files);
     }
 
     @PostMapping("/create")

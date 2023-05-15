@@ -1,6 +1,5 @@
 package com.labs.java_lab1.notif.dto;
 
-import com.labs.java_lab1.common.dto.NotifTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

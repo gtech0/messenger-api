@@ -1,0 +1,43 @@
+minio:
+  access-key: KanbyVSIvOTDQOGE
+  secret-key: 3WeM8qkAQJ9y7oaYSCBmWf9ApXafzPVe
+  bucket: file-bucket
+  url: http://localhost:9900
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/file_db
+    username: postgres
+    password: password
+  flyway:
+    url: jdbc:postgresql://localhost:5432/file_db
+    user: postgres
+    password: password
+    locations: classpath:migrations
+
+app:
+  name: File Service
+  security: # этот набор свойств парсит SecurityProps
+    jwt-token:
+      permit-all:
+        - /api/users/register # пример метода регистрации пользователя
+        - /api/users/login
+        - /api/users/list
+        - /api/friends/blacklist/sync
+        - /api/friends/sync
+      root-path: /api
+      secret: 423F4528482B4D6251655468576D5A7134743777217A25432A46294A404E6352
+      expiration: 86400000 # время миллисекунд
+    integrations:
+      root-path: /integration
+      api-key: ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX
+
+server:
+  port: 8085

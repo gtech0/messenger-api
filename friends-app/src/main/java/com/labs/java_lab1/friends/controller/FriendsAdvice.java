@@ -1,11 +1,11 @@
 package com.labs.java_lab1.friends.controller;
 
+import com.labs.java_lab1.common.exception.ServiceUnavailableException;
+import com.labs.java_lab1.common.exception.UnauthorizedException;
 import com.labs.java_lab1.common.exception.UserNotFoundException;
 import com.labs.java_lab1.common.response.ErrorResponse;
 import com.labs.java_lab1.friends.exception.FriendAlreadyExistsException;
 import com.labs.java_lab1.friends.exception.FriendNotFoundException;
-import com.labs.java_lab1.common.exception.ServiceUnavailableException;
-import com.labs.java_lab1.common.exception.UnauthorizedException;
 import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

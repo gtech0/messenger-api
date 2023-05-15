@@ -1,8 +1,8 @@
 package com.labs.java_lab1.user.controller;
 
 
-import com.labs.java_lab1.user.dto.*;
 import com.labs.java_lab1.common.response.AuthenticationResponse;
+import com.labs.java_lab1.user.dto.*;
 import com.labs.java_lab1.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

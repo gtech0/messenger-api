@@ -44,6 +44,7 @@ app:
 integration-urls:
   check-if-friend: http://localhost:8010/integration/friends/check-if-friend
   get-user-message-info: http://localhost:8010/integration/users/get-user-message-info
+  get-file-info: http://localhost:8010/integration/files/upload
 
 server:
   port: 8083

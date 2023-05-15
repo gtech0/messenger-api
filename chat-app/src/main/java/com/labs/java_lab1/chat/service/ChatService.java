@@ -7,6 +7,7 @@ import com.labs.java_lab1.chat.exception.ChatUserNotFoundException;
 import com.labs.java_lab1.chat.repository.ChatRepository;
 import com.labs.java_lab1.chat.repository.ChatUserRepository;
 import com.labs.java_lab1.chat.repository.MessageRepository;
+import com.labs.java_lab1.common.dto.FileIdNameDto;
 import com.labs.java_lab1.common.dto.NotifDto;
 import com.labs.java_lab1.common.dto.NotifTypeEnum;
 import com.labs.java_lab1.common.dto.UserMessageInfoDto;
@@ -26,7 +27,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @Slf4j
@@ -48,99 +51,102 @@ public class ChatService {
     @Value("${integration-urls.get-user-message-info}")
     private String getUserMessageInfoUrl;
 
-    @Transactional
-    public ResponseEntity<SendMessageDto> sendFriendMessage(SendMessageDto dto) {
+    @Value("${integration-urls.get-file-info}")
+    private String getFileInfoUrl;
 
-        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userId = ((JwtUserData)authentication).getId().toString();
-
-        RestTemplate restTemplate = new RestTemplate();
-        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("API_KEY", apiKey);
-
-        HashMap<String, String> map = new HashMap<>();
-        map.put("userId", userId);
-        map.put("friendId", dto.getReceiverId());
-
-        HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(checkIfFriendUrl, request, String.class);
-
-        if (!Objects.equals(response.getBody(), "true")) {
-            log.error("Friend not found");
-            throw new UserNotFoundException("Friend not found");
-        }
-
-        Optional<ChatEntity> optionalChat = chatRepository.getByUserIdAndFriendId(userId, dto.getReceiverId());
-        ChatEntity chat;
-        if (optionalChat.isEmpty()) {
-            chat = new ChatEntity(
-                    UUID.randomUUID().toString(),
-                    userId,
-                    dto.getReceiverId(),
-                    ChatTypeEnum.DIALOGUE,
-                    null,
-                    null,
-                    null,
-                    null
-            );
-            chatRepository.save(chat);
-
-            chatUserRepository.save(new ChatUserEntity(
-                    UUID.randomUUID().toString(),
-                    chat.getUuid(),
-                    userId
-            ));
-
-            chatUserRepository.save(new ChatUserEntity(
-                    UUID.randomUUID().toString(),
-                    chat.getUuid(),
-                    dto.getReceiverId()
-            ));
-
-        } else {
-            chat = optionalChat.get();
-        }
-
-        map = new HashMap<>();
-        map.put("userId", userId);
-
-        HttpEntity<HashMap<String, String>> userDataRequest = new HttpEntity<>(map, headers);
-        ResponseEntity<UserMessageInfoDto> userDataResponse =
-                restTemplate.postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
-
-        List<AttachmentEntity> attachmentEntities = new ArrayList<>();
-        MessageEntity messageEntity = new MessageEntity(
-                UUID.randomUUID().toString(),
-                chat.getUuid(),
-                userId,
-                userDataResponse.getBody().getFullName(),
-                userDataResponse.getBody().getAvatar(),
-                new Date(),
-                dto.getText(),
-                null
-        );
-
-        for (String attachmentId : dto.getAttachments()) {
-            AttachmentEntity attachmentEntity = new AttachmentEntity(
-                    UUID.randomUUID().toString(),
-                    attachmentId,
-                    null,
-                    messageEntity
-            );
-            attachmentEntities.add(attachmentEntity);
-        }
-
-        messageEntity.setAttachments(attachmentEntities);
-        messageRepository.save(messageEntity);
-
-        return ResponseEntity.ok(new SendMessageDto(
-                dto.getReceiverId(),
-                messageEntity.getMessage(),
-                dto.getAttachments()
-        ));
-    }
+//    @Transactional
+//    public ResponseEntity<SendChatMessageDto> sendFriendMessage(SendChatMessageDto dto) {
+//
+//        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        String userId = ((JwtUserData)authentication).getId().toString();
+//
+//        RestTemplate restTemplate = new RestTemplate();
+//        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        headers.set("API_KEY", apiKey);
+//
+//        HashMap<String, String> map = new HashMap<>();
+//        map.put("userId", userId);
+//        map.put("friendId", dto.getReceiverId());
+//
+//        HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
+//        ResponseEntity<String> response = restTemplate.postForEntity(checkIfFriendUrl, request, String.class);
+//
+//        if (!Objects.equals(response.getBody(), "true")) {
+//            log.error("Friend not found");
+//            throw new UserNotFoundException("Friend not found");
+//        }
+//
+//        Optional<ChatEntity> optionalChat = chatRepository.getByUserIdAndFriendId(userId, dto.getReceiverId());
+//        ChatEntity chat;
+//        if (optionalChat.isEmpty()) {
+//            chat = new ChatEntity(
+//                    UUID.randomUUID().toString(),
+//                    userId,
+//                    dto.getReceiverId(),
+//                    ChatTypeEnum.DIALOGUE,
+//                    null,
+//                    null,
+//                    null,
+//                    null
+//            );
+//            chatRepository.save(chat);
+//
+//            chatUserRepository.save(new ChatUserEntity(
+//                    UUID.randomUUID().toString(),
+//                    chat.getUuid(),
+//                    userId
+//            ));
+//
+//            chatUserRepository.save(new ChatUserEntity(
+//                    UUID.randomUUID().toString(),
+//                    chat.getUuid(),
+//                    dto.getReceiverId()
+//            ));
+//
+//        } else {
+//            chat = optionalChat.get();
+//        }
+//
+//        map = new HashMap<>();
+//        map.put("userId", userId);
+//
+//        HttpEntity<HashMap<String, String>> userDataRequest = new HttpEntity<>(map, headers);
+//        ResponseEntity<UserMessageInfoDto> userDataResponse =
+//                restTemplate.postForEntity(getUserMessageInfoUrl, userDataRequest, UserMessageInfoDto.class);
+//
+//        List<AttachmentEntity> attachmentEntities = new ArrayList<>();
+//        MessageEntity messageEntity = new MessageEntity(
+//                UUID.randomUUID().toString(),
+//                chat.getUuid(),
+//                userId,
+//                userDataResponse.getBody().getFullName(),
+//                userDataResponse.getBody().getAvatar(),
+//                new Date(),
+//                dto.getText(),
+//                null
+//        );
+//
+//        for (String attachmentId : dto.getAttachments()) {
+//            AttachmentEntity attachmentEntity = new AttachmentEntity(
+//                    UUID.randomUUID().toString(),
+//                    attachmentId,
+//                    null,
+//                    messageEntity
+//            );
+//            attachmentEntities.add(attachmentEntity);
+//        }
+//
+//        messageEntity.setAttachments(attachmentEntities);
+//        messageRepository.save(messageEntity);
+//
+//        return ResponseEntity.ok(new SendChatMessageDto(
+//                dto.getReceiverId(),
+//                messageEntity.getMessage(),
+//                dto.getAttachments()
+//        ));
+//    }
 
     @Transactional
     public ResponseEntity<CreateChatDto> createChat(CreateChatDto dto) {
@@ -156,17 +162,7 @@ public class ChatService {
         headers.set("API_KEY", apiKey);
 
         for (String friendId : dto.getUsers()) {
-            HashMap<String, String> map = new HashMap<>();
-            map.put("userId", userId);
-            map.put("friendId", friendId);
-
-            HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(checkIfFriendUrl, request, String.class);
-
-            if (!Objects.equals(response.getBody(), "true")) {
-                log.error("Friend not found");
-                throw new UserNotFoundException("Friend " + friendId + " not found");
-            }
+            checkForFriends(userId, restTemplate, headers, friendId);
         }
 
         dto.getUsers().add(userId);
@@ -234,7 +230,7 @@ public class ChatService {
             }
         }
 
-        checkForFriends(userId, restTemplate, headers, addedUsers);
+        checkForFriendsFor(userId, restTemplate, headers, addedUsers);
 
         for (String friendId : addedUsers) {
             Optional<ChatUserEntity> optionalChatUser =
@@ -251,7 +247,7 @@ public class ChatService {
         }
 
         if (!Objects.equals(chat.get().getAdminId(), userId)) {
-            checkForFriends(userId, restTemplate, headers, removedUsers);
+            checkForFriendsFor(userId, restTemplate, headers, removedUsers);
         }
 
         chatUserRepository.deleteAllByChatIdAndUserIdIn(dto.getId(), removedUsers);
@@ -268,24 +264,29 @@ public class ChatService {
         ));
     }
 
-    private void checkForFriends(String userId, RestTemplate restTemplate, HttpHeaders headers, List<String> userList) {
+    private void checkForFriendsFor(String userId, RestTemplate restTemplate, HttpHeaders headers, List<String> userList) {
         for (String friendId : userList) {
-            HashMap<String, String> map = new HashMap<>();
-            map.put("userId", userId);
-            map.put("friendId", friendId);
+            checkForFriends(userId, restTemplate, headers, friendId);
+        }
+    }
 
-            HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(checkIfFriendUrl, request, String.class);
+    private void checkForFriends(String userId, RestTemplate restTemplate, HttpHeaders headers, String friendId) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("userId", userId);
+        map.put("friendId", friendId);
 
-            if (!Objects.equals(response.getBody(), "true")) {
-                log.error("Friend not found");
-                throw new UserNotFoundException("Friend " + friendId + " not found");
-            }
+        HttpEntity<HashMap<String, String>> request = new HttpEntity<>(map, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(checkIfFriendUrl, request, String.class);
+
+        if (!Objects.equals(response.getBody(), "true")) {
+            log.error("Friend not found");
+            throw new UserNotFoundException("Friend " + friendId + " not found");
         }
     }
 
     @Transactional
-    public ResponseEntity<SendMessageDto> sendChatMessage(SendMessageDto dto) {
+    public ResponseEntity<SendChatMessageDto> sendChatMessage(SendChatMessageDto dto,
+                                                              List<MultipartFile> files) throws IOException {
 
         Optional<ChatEntity> chat = chatRepository.getByUuid(dto.getReceiverId());
         if (chat.isEmpty()) {
@@ -304,7 +305,7 @@ public class ChatService {
         }
 
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("API_KEY", apiKey);
@@ -328,11 +329,24 @@ public class ChatService {
                 null
         );
 
-        for (String attachmentId : dto.getAttachments()) {
+        //getFileInfoUrl
+        restTemplate = new RestTemplate();
+        restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+
+        for (MultipartFile file : files) {
+            HashMap<String, Object> hashMap = new HashMap<>();
+            hashMap.put("fileName", file.getOriginalFilename());
+            hashMap.put("bytes", file.getBytes());
+            HttpEntity<HashMap<String, Object>> fileRequest = new HttpEntity<>(hashMap, headers);
+
+            ResponseEntity<FileIdNameDto> fileResponse = restTemplate
+                    .postForEntity(getFileInfoUrl, fileRequest, FileIdNameDto.class);
+            log.debug(Objects.requireNonNull(fileResponse.getBody()).getFileName());
+
             AttachmentEntity attachmentEntity = new AttachmentEntity(
                     UUID.randomUUID().toString(),
-                    attachmentId,
-                    null,
+                    fileResponse.getBody().getId(),
+                    fileResponse.getBody().getFileName(),
                     messageEntity
             );
             attachmentEntities.add(attachmentEntity);
@@ -357,10 +371,9 @@ public class ChatService {
             streamBridge.send("userNotifiedEvent-out-0", notifDto);
         }
 
-        return ResponseEntity.ok(new SendMessageDto(
+        return ResponseEntity.ok(new SendChatMessageDto(
                 dto.getReceiverId(),
-                messageEntity.getMessage(),
-                dto.getAttachments()
+                messageEntity.getMessage()
         ));
     }
 
