@@ -1,6 +1,7 @@
 package com.labs.java_lab1.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.persistence.Temporal;
@@ -10,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Data
+@AllArgsConstructor(staticName = "of")
 public class CreateUserDto {
 
     @NotBlank(message = "Login is required")

@@ -43,6 +43,7 @@ app:
 
 integration-urls:
   check-if-blacklisted: http://localhost:8010/integration/friends/check-if-blacklisted
+  download-attempt: http://localhost:8010/integration/files/download/
 
 server:
   port: 8081

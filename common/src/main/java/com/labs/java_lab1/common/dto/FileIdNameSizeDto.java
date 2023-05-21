@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileIdNameDto {
+public class FileIdNameSizeDto {
 
     private String id;
 
     private String fileName;
 
-    //private byte[] file;
+    private long size;
 
 }

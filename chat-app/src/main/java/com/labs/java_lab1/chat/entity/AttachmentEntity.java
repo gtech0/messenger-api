@@ -23,6 +23,9 @@ public class AttachmentEntity {
     @Column(name = "file_name")
     private String fileName;
 
+    @Column(name = "file_size")
+    private long fileSize;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_id")
     private MessageEntity message;

@@ -7,7 +7,7 @@ minio:
 spring:
   servlet:
     multipart:
-      max-file-size: 20MB
+      max-file-size: 20KB
   jpa:
     hibernate:
       ddl-auto: validate
@@ -16,6 +16,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/file_db
     username: postgres
     password: password
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:rmq-user}
+    password: ${RABBITMQ_PASSWORD:rmq-pass}
   flyway:
     url: jdbc:postgresql://localhost:5432/file_db
     user: postgres

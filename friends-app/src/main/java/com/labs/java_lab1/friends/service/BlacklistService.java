@@ -68,15 +68,19 @@ public class BlacklistService {
      * @param dto дто с фильтрацией и пагинацией
      * @return список пользователей
      */
-    public List<GetFriendsDto> getBlacklist(PagiantionDto dto) {
+    public List<GetFriendsDto> getBlacklist(PaginationDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
-        Page<BlacklistEntity> entities =
-                blacklistRepository.findAllByUserIdAndDeleteDateAndFriendNameContaining
-                        (userId, null, dto.getFriendName(),
-                                PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
+        List<BlacklistEntity> entities = blacklistRepository
+                .findAllByUserIdAndDeleteDateAndFriendNameContaining
+                        (
+                                userId,
+                                null,
+                                dto.getFriendName(),
+                                PageRequest.of(dto.getPageNo() - 1, dto.getPageSize())
+                        );
 
         log.info("Found entities");
 

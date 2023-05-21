@@ -18,6 +18,8 @@ public class MessageSearchDto {
 
     private String message;
 
+    private boolean attachmentsPresent;
+
     private Date sentDate;
 
     private List<String> attachments;

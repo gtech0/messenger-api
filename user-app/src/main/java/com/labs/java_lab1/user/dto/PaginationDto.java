@@ -1,19 +1,19 @@
 package com.labs.java_lab1.user.dto;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.util.Map;
 
-@Getter
-@RequiredArgsConstructor
+@Data
+@NoArgsConstructor
+@AllArgsConstructor(staticName = "of")
 public class PaginationDto {
 
-    private final Integer pageNo;
+    private Integer pageNo;
 
-    private final Integer pageSize;
+    private Integer pageSize;
 
-    private final Map<String, String> filters;
+    private Map<String, String> filters;
 
-    private final Map<String, String> sorting;
+    private Map<String, String> sorting;
 }

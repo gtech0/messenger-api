@@ -18,10 +18,11 @@ public class ChatController {
 
     private final ChatService service;
 
-//    @PostMapping("/message/private")
-//    public ResponseEntity<SendChatMessageDto> sendFriendMessage(@Valid @RequestBody SendChatMessageDto dto) {
-//        return service.sendFriendMessage(dto);
-//    }
+    @PostMapping("/message/private")
+    public ResponseEntity<SendChatMessageDto> sendFriendMessage(@Valid @RequestPart("dto") SendChatMessageDto dto,
+                                                                @RequestPart("files") List<MultipartFile> files) throws IOException {
+        return service.sendFriendMessage(dto, files);
+    }
 
     @PostMapping("/message/public")
     public ResponseEntity<SendChatMessageDto> sendChatMessage(@Valid @RequestPart("dto") SendChatMessageDto dto,

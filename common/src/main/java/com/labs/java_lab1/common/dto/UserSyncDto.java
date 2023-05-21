@@ -13,4 +13,6 @@ public class UserSyncDto {
 
     private String fullName;
 
+    private String avatar;
+
 }

@@ -17,6 +17,8 @@ public class ChatListDto {
 
     private String message;
 
+    private boolean attachmentsPresent;
+
     private Date sentDate;
 
     private String userId;

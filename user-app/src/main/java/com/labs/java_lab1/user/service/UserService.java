@@ -19,10 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -50,6 +47,9 @@ public class UserService {
     @Value("${integration-urls.check-if-blacklisted}")
     private String checkIfBlacklisted;
 
+    @Value("${integration-urls.download-attempt}")
+    private String downloadAttemptUrl;
+
     /**
      * Регистрация пользователя
      * @param dto данные пользователя
@@ -66,6 +66,22 @@ public class UserService {
         if (userRepository.existsByEmail(dto.getEmail())) {
             log.error("Email " + dto.getEmail() + " is already used");
             throw new UniqueConstraintViolationException("Email " + dto.getEmail() + " is already used");
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("API_KEY", apiKey);
+        HttpEntity<Void> httpHeaders = new HttpEntity<>(headers);
+
+        ResponseEntity<Boolean> fileResponse = restTemplate
+                .exchange(downloadAttemptUrl + dto.getAvatar(), HttpMethod.GET, httpHeaders, Boolean.class);
+
+        if (!Objects.equals(fileResponse.getBody(), true)) {
+            log.error("File not found");
+            throw new UserNotFoundException("File " + dto.getAvatar() + " not found");
         }
 
         UserEntity entity = new UserEntity(
@@ -150,10 +166,27 @@ public class UserService {
         entity.setCity(dto.getCity());
         entity.setAvatar(dto.getAvatar());
 
+        RestTemplate restTemplate = new RestTemplate();
+        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("API_KEY", apiKey);
+        HttpEntity<Void> httpHeaders = new HttpEntity<>(headers);
+
+        ResponseEntity<Boolean> fileResponse = restTemplate
+                .exchange(downloadAttemptUrl + dto.getAvatar(), HttpMethod.GET, httpHeaders, Boolean.class);
+
+        if (!Objects.equals(fileResponse.getBody(), true)) {
+            log.error("File not found");
+            throw new UserNotFoundException("File " + dto.getAvatar() + " not found");
+        }
+
         UserEntity createdEntity = userRepository.save(entity);
         log.info("User was updated");
 
-        streamBridge.send("userModifiedEvent-out-0", new UserSyncDto(userId, dto.getFullName()));
+        streamBridge.send("userModifiedEvent-out-0",
+                new UserSyncDto(userId, dto.getFullName(), dto.getAvatar()));
 
         return new UserDto(
                 createdEntity.getLogin(),
@@ -313,6 +346,14 @@ public class UserService {
 
         if (sort == null) {
             sort = Sort.by("fullName").ascending();
+        }
+
+        if (dto.getPageNo() == null) {
+            dto.setPageNo(1);
+        }
+
+        if (dto.getPageSize() == null) {
+            dto.setPageSize(10);
         }
 
         List<UserDto> entities = userRepository

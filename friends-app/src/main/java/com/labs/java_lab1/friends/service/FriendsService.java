@@ -63,15 +63,19 @@ public class FriendsService {
     @Value("${integration-urls.sync}")
     private String syncUrl;
 
-    public List<GetFriendsDto> getFriends(PagiantionDto dto) {
+    public List<GetFriendsDto> getFriends(PaginationDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
-        Page<FriendsEntity> entities =
-                friendsRepository.findAllByUserIdAndDeleteDateAndFriendNameContaining
-                        (userId, null, dto.getFriendName(),
-                                PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
+        List<FriendsEntity> entities = friendsRepository
+                .findAllByUserIdAndDeleteDateAndFriendNameContaining
+                        (
+                                userId,
+                                null,
+                                dto.getFriendName(),
+                                PageRequest.of(dto.getPageNo() - 1, dto.getPageSize())
+                        );
 
         log.info("Found entities");
 
@@ -341,9 +345,11 @@ public class FriendsService {
                 .friendName(filters.get("friendName"))
                 .build();
 
-        Page<FriendsEntity> entities =
-                friendsRepository.findAll(Example.of(example),
-                        PageRequest.of(dto.getPageNo() - 1, dto.getPageSize()));
+        Page<FriendsEntity> entities = friendsRepository
+                .findAll(
+                        Example.of(example),
+                        PageRequest.of(dto.getPageNo() - 1, dto.getPageSize())
+                );
 
         log.info("Found entities");
         List<GetFriendsDto> dtos = new ArrayList<>();

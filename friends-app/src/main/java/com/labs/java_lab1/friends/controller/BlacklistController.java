@@ -17,7 +17,7 @@ public class BlacklistController {
     private final BlacklistService blacklistService;
 
     @PostMapping("/list")
-    public List<GetFriendsDto> getFriends(@RequestBody PagiantionDto dto) {
+    public List<GetFriendsDto> getFriends(@RequestBody PaginationDto dto) {
         return blacklistService.getBlacklist(dto);
     }
 

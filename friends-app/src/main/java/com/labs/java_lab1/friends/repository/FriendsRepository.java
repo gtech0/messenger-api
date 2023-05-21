@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface FriendsRepository extends JpaRepository<FriendsEntity, String> {
     Optional<FriendsEntity> getByUserIdAndFriendId(String userId, String friendId);
     List<FriendsEntity> getAllByFriendId(String friendId);
-    Page<FriendsEntity> findAllByUserIdAndDeleteDateAndFriendNameContaining
+    List<FriendsEntity> findAllByUserIdAndDeleteDateAndFriendNameContaining
             (String userId, Date deleteDate, String friendName, Pageable pageable);
     @NonNull Page<FriendsEntity> findAll(@NonNull Example example, @NonNull Pageable pageable);
 

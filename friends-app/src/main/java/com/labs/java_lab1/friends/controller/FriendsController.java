@@ -17,7 +17,7 @@ public class FriendsController {
     private final FriendsService friendsService;
 
     @PostMapping("/list")
-    public List<GetFriendsDto> getFriends(@RequestBody PagiantionDto dto) {
+    public List<GetFriendsDto> getFriends(@RequestBody PaginationDto dto) {
         return friendsService.getFriends(dto);
     }
 

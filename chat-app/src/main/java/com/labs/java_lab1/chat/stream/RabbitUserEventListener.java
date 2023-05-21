@@ -24,6 +24,7 @@ public class RabbitUserEventListener {
             List<MessageEntity> messageList = messageRepository.getAllByUserId(message.getUserId());
             for (MessageEntity messageEntity : messageList) {
                 messageEntity.setFullName(message.getFullName());
+                messageEntity.setAvatar(message.getAvatar());
                 messageRepository.save(messageEntity);
             }
         };

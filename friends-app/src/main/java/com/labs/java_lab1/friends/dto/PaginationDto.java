@@ -3,7 +3,7 @@ package com.labs.java_lab1.friends.dto;
 import lombok.Data;
 
 @Data
-public class PagiantionDto {
+public class PaginationDto {
 
     private final Integer pageNo;
 

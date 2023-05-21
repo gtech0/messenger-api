@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface BlacklistRepository extends JpaRepository<BlacklistEntity, String> {
     Optional<BlacklistEntity> getByUserIdAndFriendId(String userId, String friendId);
     List<BlacklistEntity> getAllByFriendId(String friendId);
-    Page<BlacklistEntity> findAllByUserIdAndDeleteDateAndFriendNameContaining
+    List<BlacklistEntity> findAllByUserIdAndDeleteDateAndFriendNameContaining
             (String userId, Date deleteDate, String friendName, Pageable pageable);
     @NonNull Page<BlacklistEntity> findAll(@NonNull Example example, @NonNull Pageable pageable);
 

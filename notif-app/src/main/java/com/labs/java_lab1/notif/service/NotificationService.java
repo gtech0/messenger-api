@@ -32,6 +32,10 @@ public class NotificationService {
 
     private final NotificationRepository repository;
 
+    /**
+     * Подсчёт непрочитанных сообщений
+     * @return количество непрочитанных сообщений
+     */
     public UnreadDto countUnreadMessages() {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -42,6 +46,11 @@ public class NotificationService {
         );
     }
 
+    /**
+     * Изменение статуса представленного списка уведомлений
+     * @param dto дто со списком id уведомлений и их статусом
+     * @return дто с количеством непрочтённых сообщений
+     */
     @Transactional
     public UnreadDto changeNotifStatus(StatusChangeDto dto) {
 
@@ -62,6 +71,11 @@ public class NotificationService {
         return countUnreadMessages();
     }
 
+    /**
+     * Список уведомлений
+     * @param dto дто с пагинацией и параметрами фильрации
+     * @return список уведомлений
+     */
     public List<NotifListDto> notifList(NotifListPaginationDto dto) {
 
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
