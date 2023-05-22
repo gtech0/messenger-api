@@ -296,6 +296,11 @@ public class UserService {
         );
     }
 
+    /**
+     * Получение информации об отправителе сообщения
+     * @param dto дто с id
+     * @return данные о пользователе
+     */
     public UserMessageInfoDto getMessageInfoById(UserIdDto dto) {
 
         UserEntity entity = userRepository.getByUuid(dto.getUserId()).get();

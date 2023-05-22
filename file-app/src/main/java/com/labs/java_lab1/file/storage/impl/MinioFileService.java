@@ -33,6 +33,11 @@ class MinioFileService implements FileService {
         log.info("Minio configs: {}", minioConfig);
     }
 
+    /**
+     * Загрузка файлов в хранилище
+     * @param contents файлы
+     * @return метаданные файлов
+     */
     @Override
     public List<FileIdNameSizeDto> upload(List<MultipartFile> contents) {
         List<FileIdNameSizeDto> filedataList = new ArrayList<>();
@@ -63,6 +68,11 @@ class MinioFileService implements FileService {
         return filedataList;
     }
 
+    /**
+     * Загрузка файла в хранилище (для интеграционных запросов)
+     * @param content файл
+     * @return метаданные файла
+     */
     @Override
     public FileIdNameSizeDto upload(FileDataDto content) {
         try {
@@ -89,6 +99,11 @@ class MinioFileService implements FileService {
         }
     }
 
+    /**
+     * Загрузка файла из хранилища
+     * @param id идентификатор файла в хранилище
+     * @return байтовый массив
+     */
     @Override
     public byte[] download(String id) {
         var args = GetObjectArgs.builder()
@@ -102,6 +117,11 @@ class MinioFileService implements FileService {
         }
     }
 
+    /**
+     * Проверка файла на существование
+     * @param id идентификатор файла в хранилище
+     * @return true или false
+     */
     @Override
     public boolean checkFile(String id) {
         var args = GetObjectArgs.builder()

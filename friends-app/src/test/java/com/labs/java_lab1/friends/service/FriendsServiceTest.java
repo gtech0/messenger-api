@@ -3,7 +3,6 @@ package com.labs.java_lab1.friends.service;
 import com.labs.java_lab1.common.security.JwtUserData;
 import com.labs.java_lab1.friends.dto.*;
 import com.labs.java_lab1.friends.entity.FriendsEntity;
-import com.labs.java_lab1.friends.repository.BlacklistRepository;
 import com.labs.java_lab1.friends.repository.FriendsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -22,7 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,14 +33,8 @@ public class FriendsServiceTest {
     @InjectMocks
     private FriendsService friendsService;
 
-    @InjectMocks
-    private BlacklistService blacklistService;
-
     @Mock
     private FriendsRepository friendsRepository;
-
-    @Mock
-    private BlacklistRepository blacklistRepository;
 
     @Test
     public void getFriends() {
@@ -120,17 +113,13 @@ public class FriendsServiceTest {
         context.setAuthentication(authentication);
 
         Pageable pageable = PageRequest.of(0, 1);
-        FriendsEntity example = FriendsEntity
-                .builder()
-                .addDate(null)
-                .deleteDate(null)
-                .userId(userId.toString())
-                .friendId(null)
-                .friendName(null)
-                .build();
+
         when(friendsRepository
                 .findAllQuery(
-                        Example.of(example),
+                        null,
+                        userId.toString(),
+                        null,
+                        null,
                         pageable
                 )
         )

@@ -16,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -336,18 +334,12 @@ public class FriendsService {
             }
         }
 
-        FriendsEntity example = FriendsEntity
-                .builder()
-                .addDate(date)
-                .deleteDate(null)
-                .userId(userId)
-                .friendId(filters.get("friendId"))
-                .friendName(filters.get("friendName"))
-                .build();
-
-        Page<FriendsEntity> entities = friendsRepository
-                .findAll(
-                        Example.of(example),
+        List<FriendsEntity> entities = friendsRepository
+                .findAllQuery(
+                        date,
+                        userId,
+                        filters.get("friendId"),
+                        filters.get("friendName"),
                         PageRequest.of(dto.getPageNo() - 1, dto.getPageSize())
                 );
 

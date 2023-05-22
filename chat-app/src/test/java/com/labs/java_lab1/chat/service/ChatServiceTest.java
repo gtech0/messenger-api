@@ -84,6 +84,7 @@ public class ChatServiceTest {
 
         when(messageRepository.getAllByChatIdOrderBySentDateDesc(chatId))
                 .thenReturn(List.of(messageEntity()));
+
         log.debug(chatService.viewChat(chatId).toString());
         log.debug(ResponseEntity.of(Optional.of(List.of(messageInfoDto()))).toString());
         assert Objects.equals(chatService.viewChat(chatId), ResponseEntity.of(Optional.of(List.of(messageInfoDto()))));
