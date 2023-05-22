@@ -83,11 +83,12 @@ public class ChatService {
             log.error("Friend not found");
             throw new UserNotFoundException("Friend not found");
         }
-
+        log.info("Friend found");
         Optional<ChatEntity> optionalChat1 = chatRepository.getByUserIdAndFriendId(userId, dto.getReceiverId());
         Optional<ChatEntity> optionalChat2 = chatRepository.getByUserIdAndFriendId(dto.getReceiverId(), userId);
         ChatEntity chat;
         if (optionalChat1.isEmpty() && optionalChat2.isEmpty()) {
+            log.error("Dialogue created");
             chat = new ChatEntity(
                     UUID.randomUUID().toString(),
                     userId,
@@ -205,6 +206,7 @@ public class ChatService {
             log.error("File not found");
             throw new UserNotFoundException("File " + dto.getAvatar() + " not found");
         }
+        log.info("File found");
 
         dto.getUsers().add(userId);
         List<String> userList = dto.getUsers();
@@ -292,6 +294,7 @@ public class ChatService {
             log.error("File not found");
             throw new UserNotFoundException("File " + dto.getAvatar() + " not found");
         }
+        log.info("File found");
 
         for (String friendId : addedUsers) {
             Optional<ChatUserEntity> optionalChatUser =
@@ -421,6 +424,7 @@ public class ChatService {
 
         messageEntity.setAttachments(attachmentEntities);
         messageRepository.save(messageEntity);
+        log.info("Message saved");
 
         if (chat.get().getType() == ChatTypeEnum.DIALOGUE) {
             String notifString =
@@ -465,6 +469,7 @@ public class ChatService {
                     chatUserRepository.getByChatIdAndUserId(id, userId);
 
             if (optionalChatUser.isEmpty()) {
+                log.error("This user is not in this chat");
                 throw new ChatUserNotFoundException("This user is not in this chat");
             }
 
@@ -504,6 +509,7 @@ public class ChatService {
 
         Optional<ChatEntity> chat = chatRepository.getByUuid(id);
         if (chat.isEmpty()) {
+            log.error("Chat not found");
             throw new ChatNotFoundException("Chat not found");
         }
 
@@ -532,6 +538,7 @@ public class ChatService {
 
     private ResponseEntity<List<MessageInfoDto>> getMessageList(String id) {
         List<MessageEntity> messageEntities = messageRepository.getAllByChatIdOrderBySentDateDesc(id);
+        log.info("Found messages");
 
         List<MessageInfoDto> messageInfoDtoList = new ArrayList<>();
         for (MessageEntity entity : messageEntities) {
@@ -567,10 +574,12 @@ public class ChatService {
         String userId = ((JwtUserData)authentication).getId().toString();
 
         if (dto.getPageNo() == null) {
+            log.info("Page is null");
             dto.setPageNo(1);
         }
 
         if (dto.getPageSize() == null) {
+            log.info("Page size is null");
             dto.setPageSize(50);
         }
 
@@ -642,6 +651,7 @@ public class ChatService {
                 }
             }
         }
+        log.info("Chat list formed");
         return ResponseEntity.ok(chatListDtoList);
     }
 
@@ -728,6 +738,7 @@ public class ChatService {
             }
         }
         messageSearchDtoList.sort(Comparator.comparing(MessageSearchDto::getSentDate));
+        log.info("Message list formed");
         return ResponseEntity.ok(messageSearchDtoList);
     }
 }

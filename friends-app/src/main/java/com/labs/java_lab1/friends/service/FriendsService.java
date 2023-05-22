@@ -33,6 +33,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/**
+ * Методы друзей
+ * javadoc в методах блэклиста, т.к. методы идентичны
+ */
 @Slf4j
 @Service
 public class FriendsService {

@@ -62,9 +62,11 @@ class MinioFileService implements FileService {
                         content.getSize()
                 ));
             } catch (Exception e) {
+                log.error("Upload error");
                 throw new RuntimeException("Upload error", e);
             }
         }
+        log.error("Upload successful");
         return filedataList;
     }
 
@@ -95,6 +97,7 @@ class MinioFileService implements FileService {
                     content.getBytes().length
             );
         } catch (Exception e) {
+            log.error("Upload error");
             throw new RuntimeException("Upload error", e);
         }
     }
@@ -113,6 +116,7 @@ class MinioFileService implements FileService {
         try (var in = minioClient.getObject(args)) {
             return in.readAllBytes();
         } catch (Exception e) {
+            log.error("Download error");
             throw new RuntimeException("Download file error id=" + id, e);
         }
     }

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.Mockito.*;
 
 @Slf4j
@@ -69,7 +70,6 @@ public class MinioFileServiceTest {
         );
 
         when(minioConfig.getBucket()).thenReturn(bucket);
-        //when(repository.findAllByUuid(fileId)).thenReturn(Optional.of(file));
 
         GetObjectResponse response = mock(GetObjectResponse.class);
         when(response.readAllBytes()).thenReturn(content);
@@ -78,5 +78,6 @@ public class MinioFileServiceTest {
         byte[] download = minioFileService.download(fileId);
 
         assertNotNull(download);
+        assertArrayEquals(content, download);
     }
 }

@@ -41,6 +41,7 @@ public class NotificationService {
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String login = ((JwtUserData)authentication).getLogin();
 
+        log.info("Counted unread messages");
         return new UnreadDto(
                 repository.countByUserIdAndStatusAndType(login, StatusEnum.UNREAD, NotifTypeEnum.NEW_MESSAGE)
         );
@@ -68,6 +69,7 @@ public class NotificationService {
             notification.setStatus(dto.getStatus());
             repository.save(notification);
         }
+        log.info("Notification status changed");
         return countUnreadMessages();
     }
 
@@ -86,17 +88,21 @@ public class NotificationService {
         Date endDate = null;
 
         if (dto.getStartDate() != null) {
+            log.info("Start date is null");
             try {
                 startDate = java.util.Date.from(Instant.parse(dto.getStartDate()));
             } catch (Exception e) {
+                log.error("Invalid date format");
                 throw new DateParseException("Invalid date format");
             }
         }
 
         if (dto.getEndDate() != null) {
+            log.info("End date is null");
             try {
                 endDate = java.util.Date.from(Instant.parse(dto.getEndDate()));
             } catch (Exception e) {
+                log.error("Invalid date format");
                 throw new DateParseException("Invalid date format");
             }
         }
@@ -110,6 +116,7 @@ public class NotificationService {
                 }
             }
             if (typeEnum == null) {
+                log.error("Type is not found");
                 throw new TypeNotFoundException("Type is not found");
             }
             notifTypeEnumList.add(typeEnum);
