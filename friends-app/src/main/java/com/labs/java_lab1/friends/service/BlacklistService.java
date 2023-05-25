@@ -52,9 +52,6 @@ public class BlacklistService {
     @Value("${app.security.integrations.api-key}")
     private String apiKey;
 
-    @Value("${integration-urls.check-id-name}")
-    private String checkIdNameUrl;
-
     @Value("${integration-urls.check-id}")
     private String checkIdUrl;
 
@@ -161,7 +158,7 @@ public class BlacklistService {
         String token = requestHeaders.getHeader("Authorization");
 
         RestTemplate restTemplate = new RestTemplate();
-        //restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+        restTemplate.setErrorHandler(new RestTemplateErrorHandler());
         HashMap<String, String> map = new HashMap<>();
         map.put("friendId", dto.getFriendId());
 
@@ -264,6 +261,11 @@ public class BlacklistService {
         }
     }
 
+    /**
+     * Проверка существования пользователя в блэклисте
+     * @param dto дто с данными о пользователях
+     * @return true - существует, false - нет
+     */
     public boolean checkById(ChatFriendDto dto) {
 
         log.info("Checked by id");
@@ -271,7 +273,7 @@ public class BlacklistService {
     }
 
     /**
-     * Синхронизация данных о конкретном пользователе в блэклисте
+     * Ручная синхронизация данных о конкретном пользователе в блэклисте
      * @param friendId id пользователя в блэклисте
      * @return дто с актульными данными об этом пользователе
      */

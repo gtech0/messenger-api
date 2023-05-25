@@ -256,14 +256,19 @@ public class ChatService {
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String userId = ((JwtUserData)authentication).getId().toString();
 
+        Optional<ChatUserEntity> optionalChatUserCheck =
+                chatUserRepository.getByChatIdAndUserId(dto.getId(), userId);
+
+        if (optionalChatUserCheck.isEmpty()) {
+            throw new ChatUserNotFoundException("This user is not in this chat");
+        }
+
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setErrorHandler(new RestTemplateErrorHandler());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("API_KEY", apiKey);
-
-
 
         List<String> chatUserList = chatUserRepository.getAllByChatIdQuery(dto.getId());
         List<String> addedUsers = new ArrayList<>();

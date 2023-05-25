@@ -13,10 +13,14 @@ public class RestTemplateErrorHandler implements ResponseErrorHandler {
         if (response.getStatusCode().is5xxServerError()) {
             if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
                 throw new ServiceUnavailableException("Service is currently unavailable");
+            } else {
+                throw new Unknown5xxException("5xx exception");
             }
         } else if (response.getStatusCode().is4xxClientError()) {
             if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 throw new UnauthorizedException("Unauthorized access");
+            } else {
+                throw new Unknown4xxException("4xx exception");
             }
         }
     }

@@ -56,9 +56,6 @@ public class FriendsService {
     @Value("${app.security.integrations.api-key}")
     private String apiKey;
 
-    @Value("${integration-urls.check-id-name}")
-    private String checkIdNameUrl;
-
     @Value("${integration-urls.check-id}")
     private String checkIdUrl;
 
