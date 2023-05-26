@@ -1,0 +1,1008 @@
+{
+	"info": {
+		"_postman_id": "0ab6445d-00d1-4f5d-9fa0-0681ab172cb7",
+		"name": "java",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23792243"
+	},
+	"item": [
+		{
+			"name": "user-app",
+			"item": [
+				{
+					"name": "registration",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"login\": \"wqrwqrcas\",\r\n    \"email\": \"gewhwe@tassu.ru\",\r\n    \"password\": \"1\",\r\n    \"fullName\": \"Иванов Иван Иваныч\",\r\n    \"birthDate\": \"1999-01-07\",\r\n    \"phoneNumber\": \"592386923\",\r\n    \"city\": \"city\",\r\n    \"avatar\": \"08f1baa5-7710-4c4f-babb-351bb2519d02\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/users/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "auth",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"login\": \"wqrwqrcas\",\r\n    \"password\": \"1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/users/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change profile",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fullName\": \"jbierjobr\",\r\n    \"birthDate\": \"1959-02-07\",\r\n    \"phoneNumber\": \"235236326\",\r\n    \"city\": \"hreherh\",\r\n    \"avatar\": \"98213c41-e400-4c66-909a-a3253861964c\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/users/profile",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check profile by login",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8010/api/users/profile/gqwrhrehr",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"users",
+								"profile",
+								"gqwrhrehr"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check filtered profiles",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"pageNo\": 2,\r\n    \"pageSize\" : 4,\r\n    \"filters\": {\r\n        \"fullName\": \"\"\r\n    },\r\n    \"sorting\": {\r\n        \"fullName\": \"desc\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/users/list",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"users",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check your profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "API_KEY",
+								"value": "ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8010/api/users/profile",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "friends-app",
+			"item": [
+				{
+					"name": "friends",
+					"item": [
+						{
+							"name": "add friend",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "API_KEY",
+										"value": "ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"friendId\": \"e6209e71-2b42-42dc-905a-6c1eda4018ee\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8010/api/friends/add",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"add"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get friend",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8010/api/friends/5ce9f989-fdf6-49c6-a537-620d5d07c893",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"5ce9f989-fdf6-49c6-a537-620d5d07c893"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "API_KEY",
+										"value": "ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8010/api/friends/sync/72a6bb7d-f165-40e2-8f5f-3f44242b08e",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"sync",
+										"72a6bb7d-f165-40e2-8f5f-3f44242b08e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete friend",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8010/api/friends/delete/e6209e71-2b42-42dc-905a-6c1eda4018ee",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"delete",
+										"e6209e71-2b42-42dc-905a-6c1eda4018ee"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get friends",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pageNo\": 1,\r\n    \"pageSize\": 1,\r\n    \"friendName\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8010/api/friends/list",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "search friends",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pageNo\": 1,\r\n    \"pageSize\": 5,\r\n    \"filters\": {\r\n        \"addDate\": \"2023-05-20\",\r\n        \"friendName\": \"wh\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8010/api/friends/search",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"search"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "blacklist",
+					"item": [
+						{
+							"name": "add to blacklist",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"friendId\": \"540af0db-4862-40f1-8934-385f4da10ae1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8010/api/friends/blacklist/add",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"blacklist",
+										"add"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get from blacklist",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8010/api/friends/blacklist/5ce9f989-fdf6-49c6-a537-620d5d07c893",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"blacklist",
+										"5ce9f989-fdf6-49c6-a537-620d5d07c893"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "API_KEY",
+										"value": "ZcQQC76uuFdiHjLufyH7C4xibCXuGRvvILgVaERrPYBiAaDTFpsUst8nh2cnGgWvJXEXB4xaXM2RFWkWJ5TriYzAe6DwD4MJtSowZfhayfHKOwzCnvt9nmQoVi1SgnFX",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8010/api/friends/blacklist/sync/c96c179b-413b-4c67-84b3-d6d18ca23912",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"blacklist",
+										"sync",
+										"c96c179b-413b-4c67-84b3-d6d18ca23912"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete from blacklist",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8010/api/friends/blacklist/delete/c96c179b-413b-4c67-84b3-d6d18ca23912",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"blacklist",
+										"delete",
+										"c96c179b-413b-4c67-84b3-d6d18ca23912"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get blacklist",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pageNo\": 1,\r\n    \"pageSize\": 5,\r\n    \"friendName\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8010/api/friends/blacklist/list",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"blacklist",
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "search blacklist",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pageNo\": 1,\r\n    \"pageSize\": 5,\r\n    \"filters\": {\r\n        \r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8010/api/friends/blacklist/search",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"blacklist",
+										"search"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check user in blacklist",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8010/api/friends/blacklist/check/72a6bb7d-f165-40e2-8f5f-3f44242b08e8",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8010",
+									"path": [
+										"api",
+										"friends",
+										"blacklist",
+										"check",
+										"72a6bb7d-f165-40e2-8f5f-3f44242b08e8"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "chat-app",
+			"item": [
+				{
+					"name": "send message to friend",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "dto",
+									"value": "{\n    \"receiverId\": \"c96c179b-413b-4c67-84b3-d6d18ca23912\",\n    \"text\": \"rhrhrheh\"\n}",
+									"contentType": "application/json",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"contentType": "multipart/form-data",
+									"type": "file",
+									"src": [
+										"/C:/Users/dmg/Desktop/fasfasf.txt",
+										"/C:/Users/dmg/Desktop/req.json",
+										"/C:/Users/dmg/Desktop/text.txt"
+									]
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/chat/message/private",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"message",
+								"private"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create chat",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"gwerhgwehwehg\",\r\n    \"avatar\": \"08f1baa5-7710-4c4f-babb-351bb2519d02\",\r\n    \"users\": [\r\n        \r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/chat/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update chat",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"98717d57-e383-42ea-913d-5d8b5766cadb\",\r\n    \"name\": \"gewheh\",\r\n    \"avatar\": \"11cfbbb6-f306-44ff-89f0-1e3ea25cd1f8\",\r\n    \"users\": [\r\n        \"e6209e71-2b42-42dc-905a-6c1eda4018ee\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/chat/update",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send message in chat",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "dto",
+									"value": "{\n    \"receiverId\": \"6a9505c7-1241-40a5-af9a-41490ffd4eb9\",\n    \"text\": \"erherh\"\n}",
+									"contentType": "application/json",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"contentType": "multipart/form-data",
+									"type": "file",
+									"src": "/C:/Users/dmg/Desktop/adv-java-backend-java-2023-master-theory-12_sb-tests.zip"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/chat/message/public",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"message",
+								"public"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "view chat info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8010/api/chat/info/d36580ba-5b4d-4a48-a84a-0362261a2060",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"info",
+								"d36580ba-5b4d-4a48-a84a-0362261a2060"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "view chat messages",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/chat/messages/1c1406dc-6cdb-4747-84e7-2725ee50ec38",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"messages",
+								"1c1406dc-6cdb-4747-84e7-2725ee50ec38"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "chat list",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"pageNo\": null,\r\n    \"pageSize\": null,\r\n    \"name\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/chat/list",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "message search",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"text\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/chat/messages/search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"chat",
+								"messages",
+								"search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "notif-app",
+			"item": [
+				{
+					"name": "unread count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8010/api/notifications/unread",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"notifications",
+								"unread"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change status",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"notifications\": [\r\n        \"8423c5e1-4b56-4de5-87ec-502f7ce7a27c\"\r\n    ],\r\n    \"status\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/notifications/change",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"notifications",
+								"change"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "search notifications",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"pageNo\": 1,\r\n    \"pageSize\": 10,\r\n    \"startDate\": \"2023-05-06T17:10:08Z\",\r\n    \"endDate\": \"2023-06-06T17:50:08Z\",\r\n    \"text\": \"\",\r\n    \"types\": [\r\n        \"LOG_IN\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/notifications/search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"notifications",
+								"search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "file-app",
+			"item": [
+				{
+					"name": "upload",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "files",
+									"contentType": "multipart/form-data",
+									"type": "file",
+									"src": "/C:/Users/dmg/Desktop/adv-java-backend-java-2023-master-theory-12_sb-tests.zip"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8010/api/files/upload",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"files",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "download",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8010/api/files/download/3e664fc0-44d3-4858-a4f0-50ce05ff2790",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8010",
+							"path": [
+								"api",
+								"files",
+								"download",
+								"3e664fc0-44d3-4858-a4f0-50ce05ff2790"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6IndxcndxcmNhcyIsIm5hbWUiOiLQmNCy0LDQvdC-0LIg0JjQstCw0L0g0JjQstCw0L3Ri9GHIiwiaWQiOiI2ZmJmNDUxZS1iNzEwLTRhYjYtODk5Zi03YzRlNTFjYzI5YTUiLCJqdGkiOiIyMGIzY2I3OC1mNTkzLTRhZWUtOWI2My1iNDlmOTcxNGI0ZjYiLCJleHAiOjE2ODUxMDQzNzd9.clFKyJMddXf0i36D5fN9B0I7NV9RER2fdzI70tDh2aE",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
